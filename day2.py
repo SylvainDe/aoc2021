@@ -21,6 +21,21 @@ def get_final_position(commands):
     return hor * depth
 
 
+def get_final_position2(commands):
+    hor, depth, aim = 0, 0, 0
+    for c, n in commands:
+        n = int(n)
+        if c == "forward":
+            hor += n
+            depth += n * aim
+        elif c == "down":
+            aim += n
+        else:
+            assert c == "up"
+            aim -= n
+    return hor * depth
+
+
 def run_tests():
     commands = [
         ["forward", "5"],
@@ -31,11 +46,13 @@ def run_tests():
         ["forward", "2"],
     ]
     assert get_final_position(commands) == 150
+    assert get_final_position2(commands) == 900
 
 
 def get_solutions():
     commands = get_commands_from_file()
     print(get_final_position(commands))
+    print(get_final_position2(commands))
 
 
 if __name__ == "__main__":
