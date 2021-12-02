@@ -7,24 +7,23 @@ def get_depths_from_file(file_path="day1_input.txt"):
         return [int(l.strip()) for l in f]
 
 
-def get_nb_increments(depths):
-    return sum(second > first for first, second in zip(depths, depths[1:]))
-
-
-def get_sliding_windows(depths):
-    return [sum(w) for w in zip(depths, depths[1:], depths[2:])]
+def get_nb_increments(depths, windowsize=1):
+    # Window(n + 1) > Window(n)
+    # d(n+1) + d(n+2) + ... + d(n+1+windowsize) > d(n) + d(n+1) + ... + d(n+windowsize)
+    # d(n+1+windowsize) > d(n)
+    return sum(last > first for first, last in zip(depths, depths[windowsize:]))
 
 
 def run_tests():
     depths = [199, 200, 208, 210, 200, 207, 240, 269, 260, 263]
     assert get_nb_increments(depths) == 7
-    assert get_nb_increments(get_sliding_windows(depths)) == 5
+    assert get_nb_increments(depths, 3) == 5
 
 
 def get_solutions():
     depths = get_depths_from_file()
     print(get_nb_increments(depths))
-    print(get_nb_increments(get_sliding_windows(depths)))
+    print(get_nb_increments(depths, 3))
 
 
 if __name__ == "__main__":
