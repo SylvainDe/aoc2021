@@ -2,12 +2,13 @@
 import datetime
 import collections
 
+
 def get_diag_from_file(file_path="day3_input.txt"):
     with open(file_path) as f:
         return [l.strip() for l in f]
 
 
-other_bit = { "0": "1", "1": "0" }
+other_bit = {"0": "1", "1": "0"}
 
 
 def get_power_consumption(diagnostic):
@@ -18,6 +19,34 @@ def get_power_consumption(diagnostic):
         gamma += val
         epsilon += other_bit[val]
     return int(gamma, base=2) * int(epsilon, base=2)
+
+
+def oxygen_rating(diagnostic, i):
+    c = collections.Counter(diag[i] for diag in diagnostic)
+    (val1, nb1), (val2, nb2) = c.most_common(2)
+    if nb1 == nb2:
+        return "1"
+    return val1
+
+
+def co2_rating(diagnostic, i):
+    return other_bit[oxygen_rating(diagnostic, i)]
+
+
+def apply_bit_criteria(diagnostic, function):
+    for i in range(len(diagnostic[0])):
+        if len(diagnostic) == 1:
+            break
+        bit_val = function(diagnostic, i)
+        diagnostic = [diag for diag in diagnostic if diag[i] == bit_val]
+    assert len(diagnostic) == 1
+    return diagnostic[0]
+
+
+def get_life_support_rating(diagnostic):
+    oxygen = apply_bit_criteria(diagnostic, oxygen_rating)
+    co2 = apply_bit_criteria(diagnostic, co2_rating)
+    return int(oxygen, base=2) * int(co2, base=2)
 
 
 def run_tests():
@@ -35,12 +64,14 @@ def run_tests():
         "00010",
         "01010",
     ]
-    print(get_power_consumption(diag))
+    assert get_power_consumption(diag) == 198
+    assert get_life_support_rating(diag) == 230
 
 
 def get_solutions():
     diag = get_diag_from_file()
     print(get_power_consumption(diag))
+    print(get_life_support_rating(diag))
 
 
 if __name__ == "__main__":
