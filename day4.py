@@ -23,25 +23,34 @@ def get_score(grid, numbers_seen, last_number):
 def play_bingo(bingo):
     numbers, grids = bingo
     numbers_seen = set()
+    winning_grids = set()
     for number in numbers:
         numbers_seen.add(number)
-        for grid in grids:
-            for i, line in enumerate(grid):
-                if all(n in numbers_seen for n in line):
-                    return get_score(grid, numbers_seen, number)
-            for j in range(len(grid[0])):
-                if all(line[j] in numbers_seen for line in grid):
-                    return get_score(grid, numbers_seen, number)
+        for gn, grid in enumerate(grids):
+            if gn not in winning_grids:
+                series = list(grid)
+                for j in range(len(grid[0])):
+                    series.append([line[j] for line in grid])
+                for serie in series:
+                    if all(n in numbers_seen for n in serie):
+                        yield get_score(grid, numbers_seen, number)
+                        winning_grids.add(gn)
+                        break
+
 
 
 def run_tests():
     bingo = get_bingo_from_file("day4_example_input.txt")
-    assert play_bingo(bingo) == 4512
+    bingo_scores = list(play_bingo(bingo))
+    assert bingo_scores[0] == 4512
+    assert bingo_scores[-1] == 1924
 
 
 def get_solutions():
     bingo = get_bingo_from_file()
-    print(play_bingo(bingo))
+    bingo_scores = list(play_bingo(bingo))
+    print(bingo_scores[0])
+    print(bingo_scores[-1])
 
 
 if __name__ == "__main__":
