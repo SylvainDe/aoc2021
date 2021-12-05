@@ -2,6 +2,7 @@
 import datetime
 import collections
 
+
 def get_point(string):
     x, y = string.split(",")
     return int(x), int(y)
@@ -17,24 +18,23 @@ def get_vents_from_file(file_path="day5_input.txt"):
         return [get_vent(l) for l in f]
 
 
-def get_lines_overlaps(lines,  diagonals=False):
+def get_lines_overlaps(lines, diagonals=False):
     paths = collections.Counter()
     for (x1, y1), (x2, y2) in lines:
         dx, dy = x1 - x2, y1 - y2
+        absdx, absdy = abs(dx), abs(dy)
+        steps = None
         if dx == 0:
-             mini, maxi = sorted((y1, y2))
-             for y in range(mini, maxi+1):
-                 paths[(x1, y)] += 1
+            steps = absdy
         elif dy == 0:
-             mini, maxi = sorted((x1, x2))
-             for x in range(mini, maxi+1):
-                 paths[(x, y1)] += 1
-        elif diagonals and abs(dx) == abs(dy):
-             steps = abs(dx)
-             for s in range(0, steps + 1):
-                 x = x1 - s * dx / steps
-                 y = y1 - s * dy / steps
-                 paths[(x, y)] += 1
+            steps = absdx
+        elif diagonals and absdx == absdy:
+            steps = absdx
+        if steps is not None:
+            for s in range(steps + 1):
+                x = x1 - s * dx / steps
+                y = y1 - s * dy / steps
+                paths[(x, y)] += 1
     return sum(val > 1 for val in paths.values())
 
 
