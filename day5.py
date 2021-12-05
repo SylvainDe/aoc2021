@@ -17,17 +17,24 @@ def get_vents_from_file(file_path="day5_input.txt"):
         return [get_vent(l) for l in f]
 
 
-def get_lines_overlaps(lines):
+def get_lines_overlaps(lines,  diagonals=False):
     paths = collections.Counter()
     for (x1, y1), (x2, y2) in lines:
-        if x1 == x2:
+        dx, dy = x1 - x2, y1 - y2
+        if dx == 0:
              mini, maxi = sorted((y1, y2))
              for y in range(mini, maxi+1):
                  paths[(x1, y)] += 1
-        elif y1 == y2:
+        elif dy == 0:
              mini, maxi = sorted((x1, x2))
              for x in range(mini, maxi+1):
                  paths[(x, y1)] += 1
+        elif diagonals and abs(dx) == abs(dy):
+             steps = abs(dx)
+             for s in range(0, steps + 1):
+                 x = x1 - s * dx / steps
+                 y = y1 - s * dy / steps
+                 paths[(x, y)] += 1
     return sum(val > 1 for val in paths.values())
 
 
@@ -46,12 +53,13 @@ def run_tests():
     ]
     vents = [get_vent(s) for s in vents]
     assert get_lines_overlaps(vents) == 5
-
+    assert get_lines_overlaps(vents, True) == 12
 
 
 def get_solutions():
     vents = get_vents_from_file()
     print(get_lines_overlaps(vents))
+    print(get_lines_overlaps(vents, True))
 
 
 if __name__ == "__main__":
