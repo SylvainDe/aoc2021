@@ -10,6 +10,8 @@ Day       Time   Rank  Score       Time   Rank  Score       Delta rank  Delta ti
 # From https://adventofcode.com/2021/leaderboard/self
 
 stats = """
+  5   02:57:27  13036      0   03:09:47  11538      0
+  4   06:15:23  21870      0   06:27:32  19726      0
   3   08:16:54  54746      0   08:32:17  35746      0
   2   07:50:32  56717      0   07:52:32  53147      0
   1   07:35:16  44355      0   07:40:40  38014      0
