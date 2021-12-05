@@ -16,6 +16,7 @@ def get_bingo_from_file(file_path="day4_input.txt"):
                 grid = []
         return numbers, grids
 
+
 def get_score(grid, numbers_seen, last_number):
     return sum(n for line in grid for n in line if n not in numbers_seen) * last_number
 
@@ -36,7 +37,6 @@ def play_bingo(bingo):
                         yield get_score(grid, numbers_seen, number)
                         winning_grids.add(gn)
                         break
-
 
 
 def run_tests():
