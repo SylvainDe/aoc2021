@@ -1,7 +1,6 @@
 # vi: set shiftwidth=4 tabstop=4 expandtab:
 import datetime
 import functools
-import itertools
 import collections
 
 
