@@ -21,7 +21,7 @@ def get_vents_from_file(file_path="day5_input.txt"):
 def get_lines_overlaps(lines, diagonals=False):
     paths = collections.Counter()
     for (x1, y1), (x2, y2) in lines:
-        dx, dy = x1 - x2, y1 - y2
+        dx, dy = x2 - x1, y2 - y1
         absdx, absdy = abs(dx), abs(dy)
         steps = None
         if dx == 0:
@@ -32,8 +32,8 @@ def get_lines_overlaps(lines, diagonals=False):
             steps = absdx
         if steps is not None:
             for s in range(steps + 1):
-                x = x1 - s * dx / steps
-                y = y1 - s * dy / steps
+                x = x1 + s * dx / steps
+                y = y1 + s * dy / steps
                 paths[(x, y)] += 1
     return sum(val > 1 for val in paths.values())
 
