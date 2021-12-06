@@ -17,26 +17,23 @@ def one_generation(fishes):
 
 
 def n_generations(fishes, n):
-    # There must be a faster way
     for _ in range(n):
         fishes = one_generation(fishes)
     return fishes
 
 
-@functools.lru_cache(maxsize=100000)
-def nb_fishes_from_fish(fish, n):
-    if n == 0 or fish > n:
-        return 1
-    if fish == 0:
-        return nb_fishes_from_fish(6, n - 1) + nb_fishes_from_fish(8, n - 1)
-    return nb_fishes_from_fish(0, n - fish)
-
-
-def nb_fishes_from_fishes(fishes, n):
-    return sum(
-        nb * nb_fishes_from_fish(val, n)
-        for val, nb in collections.Counter(fishes).items()
-    )
+def n_generations_from_count(fishes, n):
+    count = collections.Counter(fishes)
+    for _ in range(n):
+        new_count = collections.Counter()
+        for val, nb in count.items():
+            if val == 0:
+                new_count[6] += nb
+                new_count[8] = nb
+            else:
+                new_count[val - 1] += nb
+        count = new_count
+    return sum(count.values())
 
 
 def run_tests():
@@ -51,13 +48,15 @@ def run_tests():
     assert n_generations(fishes1, 5) == [5, 6, 5, 3, 4, 5, 6, 7, 7, 8]
     assert n_generations(fishes1, 6) == [4, 5, 4, 2, 3, 4, 5, 6, 6, 7]
     assert n_generations(fishes1, 18) == [6, 0, 6, 4, 5, 6, 0, 1, 1, 2, 6, 0, 1, 1, 1, 2, 2, 3, 3, 4, 6, 7, 8, 8, 8, 8]
-    assert nb_fishes_from_fishes(fishes1, 256) == 26984457539
+    for i in range(7):
+        assert len(n_generations(fishes1, i)) == n_generations_from_count(fishes1, i)
+    assert n_generations_from_count(fishes1, 256) == 26984457539
 
 
 def get_solutions():
     fishes = get_fishes_from_file()
     print(len(n_generations(fishes, 80)))
-    print(nb_fishes_from_fishes(fishes, 256))
+    print(n_generations_from_count(fishes, 256))
 
 
 if __name__ == "__main__":
