@@ -23,6 +23,9 @@ def get_power_consumption(diagnostic):
 
 def oxygen_rating(diagnostic, i):
     c = collections.Counter(diag[i] for diag in diagnostic)
+    # Dirty hack to ensure that most_common(2) has something to return
+    c["1"] += 0
+    c["0"] += 0
     (val1, nb1), (val2, nb2) = c.most_common(2)
     if nb1 == nb2:
         return "1"
@@ -39,7 +42,8 @@ def apply_bit_criteria(diagnostic, function):
             break
         bit_val = function(diagnostic, i)
         diagnostic = [diag for diag in diagnostic if diag[i] == bit_val]
-    assert len(diagnostic) == 1
+    if len(diagnostic) != 1:
+        print("Warning: expected 1 remaining diag, got %d" % len(diagnostic))
     return diagnostic[0]
 
 
