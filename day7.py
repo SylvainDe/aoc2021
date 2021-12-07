@@ -12,22 +12,27 @@ def get_crabs_from_file(file_path="day7_input.txt"):
 def dist1(pos1, pos2):
     return abs(pos1 - pos2)
 
+
 def dist2(pos1, pos2):
     d = dist1(pos1, pos2)
-    return d*(d+1)//2
+    return d * (d + 1) // 2
+
 
 def cost(crabs, pos, func):
     return sum(func(pos, crab) for crab in crabs)
 
+
 def min_cost(crabs, func, positions_to_consider):
     return min(cost(crabs, p, func) for p in positions_to_consider)
+
 
 def get_best_position_dist1(crabs):
     crabs = sorted(crabs)
     n = len(crabs)
     # Get cost around median position
-    positions = (crabs[n//2], crabs[(n+1)//2])
+    positions = (crabs[n // 2], crabs[(n + 1) // 2])
     return min_cost(crabs, dist1, positions)
+
 
 def get_best_position_dist2(crabs):
     # 1. Computing the minimal cost with a square cost: C = d²
@@ -44,10 +49,12 @@ def get_best_position_dist2(crabs):
     positions = (math.floor(avg), math.ceil(avg))
     return min_cost(crabs, dist2, positions)
 
+
 def run_tests():
-    crabs = [16,1,2,0,4,2,7,1,2,14]
+    crabs = [16, 1, 2, 0, 4, 2, 7, 1, 2, 14]
     assert get_best_position_dist1(crabs) == 37
     assert get_best_position_dist2(crabs) == 168
+
 
 def get_solutions():
     crabs = get_crabs_from_file()
