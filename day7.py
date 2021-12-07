@@ -22,11 +22,8 @@ def cost(crabs, pos, func):
 def get_best_position(crabs):
     crabs = sorted(crabs)
     n = len(crabs)
-    # Get median position
-    costs = []
-    for cand in [n//2, (n+1)//2]:
-        costs.append(cost(crabs, crabs[cand], dist1))
-    return min(costs)
+    # Get cost around median position
+    return min(cost(crabs, crabs[cand], dist1) for cand in [n//2, (n+1)//2])
 
 
 def get_best_position_dist_square(crabs):
@@ -39,13 +36,9 @@ def get_best_position_dist_square(crabs):
     #       F²(x) = 2nx - 2(p1 + p2 + ... + pn)
     #       F'(x) = 0 <=> x = (p1 + ... + pn) / n
     #
-    # 3. Using the best solution for problem 2 works for problem 2 but I don't know why
-    crabs = sorted(crabs)
-    x = sum(crabs) / len(crabs)
-    costs = []
-    for cand in math.floor(x), math.ceil(x):
-        costs.append(cost(crabs, cand, dist2))
-    return min(costs)
+    # 3. Using the best solution for problem 2 works for problem 1 but I don't know why
+    avg = sum(crabs) / len(crabs)
+    return min(cost(crabs, cand, dist2) for cand in (math.floor(avg), math.ceil(avg)))
 
 def run_tests():
     crabs = [16,1,2,0,4,2,7,1,2,14]
