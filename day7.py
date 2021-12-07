@@ -9,15 +9,23 @@ def get_crabs_from_file(file_path="day7_input.txt"):
             return [int(v) for v in l.strip().split(",")]
 
 
+def dist1(pos1, pos2):
+    return abs(pos1 - pos2)
+
+def dist2(pos1, pos2):
+    d = dist1(pos1, pos2)
+    return d*(d+1)//2
+
+def cost(crabs, pos, func):
+    return sum(func(pos, crab) for crab in crabs)
+
 def get_best_position(crabs):
     crabs = sorted(crabs)
     n = len(crabs)
-    # Get media position
+    # Get median position
     costs = []
-    for cand in [(n-1)//2, n//2, (n+1)//2]:
-        pos = crabs[cand]
-        cost = sum(abs(crab-pos) for crab in crabs)
-        costs.append(cost)
+    for cand in [n//2, (n+1)//2]:
+        costs.append(cost(crabs, crabs[cand], dist1))
     return min(costs)
 
 
@@ -33,13 +41,10 @@ def get_best_position_dist_square(crabs):
     #
     # 3. Using the best solution for problem 2 works for problem 2 but I don't know why
     crabs = sorted(crabs)
-    n = len(crabs)
     x = sum(crabs) / len(crabs)
     costs = []
     for cand in math.floor(x), math.ceil(x):
-        distances = [abs(crab-cand) for crab in crabs]
-        cost = sum([d*(d+1)//2 for d in distances])
-        costs.append(cost)
+        costs.append(cost(crabs, cand, dist2))
     return min(costs)
 
 def run_tests():
