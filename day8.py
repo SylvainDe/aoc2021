@@ -28,6 +28,7 @@ RAW_SEGMENTS = [
     (1, 1, 1, 1, 0, 1, 1),
 ]
 
+
 def print_segments():
     """Ensure that the segment segments values are correct."""
     h = {0: "  ", 1: "--"}
@@ -40,6 +41,7 @@ def print_segments():
         print(" %s" % (h[g]))
         print()
 
+
 LETTERS = "ABCDEFG"
 
 SEGMENTS = {
@@ -47,14 +49,15 @@ SEGMENTS = {
     for i, s in enumerate(RAW_SEGMENTS)
 }
 
+
 def group_by_len(strs):
     lengths = dict()
     for s in strs:
         lengths.setdefault(len(s), []).append(s)
     return lengths
 
-SEGMENTS_BY_LEN = group_by_len(SEGMENTS.keys())
 
+SEGMENTS_BY_LEN = group_by_len(SEGMENTS.keys())
 
 
 def signal_can_be_segment(signal, segment, mapping):
@@ -64,6 +67,7 @@ def signal_can_be_segment(signal, segment, mapping):
         if not any((s in segment) == (l in signal) for s in decoded_set):
             return False
     return True
+
 
 def decode_signal_pattern(signals):
     mapping = {l: set(L for L in LETTERS) for l in LETTERS.lower()}
