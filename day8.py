@@ -115,6 +115,10 @@ def decode_signals(signals):
     return c[1] + c[4] + c[7] + c[8]
 
 
+def decode_signals2(signals):
+    return sum(int("".join(str(d) for d in decode_signal(s))) for s in signals)
+
+
 def run_tests():
     signals = "acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf"
     signals = [get_signals_from_str(signals)]
@@ -133,11 +137,13 @@ def run_tests():
     ]
     signals = [get_signals_from_str(s) for s in signals]
     assert decode_signals(signals) == 26
+    assert decode_signals2(signals) == 61229
 
 
 def get_solutions():
     signals = get_signals_from_file()
     print(decode_signals(signals))
+    print(decode_signals2(signals))
 
 
 if __name__ == "__main__":
