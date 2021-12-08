@@ -1,5 +1,6 @@
 # vi: set shiftwidth=4 tabstop=4 expandtab:
 import datetime
+import collections
 
 
 def get_signals_from_str(l, sep=" | "):
@@ -55,19 +56,28 @@ def group_by_len(strs):
 SEGMENTS_BY_LEN = group_by_len(SEGMENTS.keys())
 
 
-def decode_signal_pattern(signal):
+
+def signal_can_be_segment(signal, segment, mapping):
+    if len(signal) != len(segment):
+        return False
+    for l, decoded_set in mapping.items():
+        if not any((s in segment) == (l in signal) for s in decoded_set):
+            return False
+    return True
+
+def decode_signal_pattern(signals):
     mapping = {l: set(L for L in LETTERS) for l in LETTERS.lower()}
-    lengths = group_by_len(signal)
+    signals = ["".join(sorted(sig)) for sig in signals]
+    lengths = group_by_len(signals)
     for i in sorted(lengths):
         sig_i, seg_i = lengths[i], SEGMENTS_BY_LEN[i]
         assert len(sig_i) == len(seg_i)
-        if len(sig_i) == 1:
-            sig, seg = sig_i[0], seg_i[0]
-            for l in sig:
-                mapping[l] = mapping[l].intersection(set(seg))
+        seg_values = set.union(*(set(seg) for seg in seg_i))
+        sig_values = set.union(*(set(sig) for sig in sig_i))
+        for l in sig_values:
+            mapping[l] = mapping[l].intersection(seg_values)
     change = True
     while change:
-        print(mapping)
         change = False
         equivalent_map = dict()
         for l, letters in mapping.items():
@@ -81,26 +91,53 @@ def decode_signal_pattern(signal):
                             if c in letters:
                                 change = True
                                 letters.remove(c)
-    # At this stage something smarter is required to go further (backtracing for instance)
+    # At this stage, everything is done and ready to be used
+    signal_to_segment = dict()
+    for sig in signals:
+        for seg in SEGMENTS:
+            if signal_can_be_segment(sig, seg, mapping):
+                assert sig not in signal_to_segment
+                signal_to_segment[sig] = seg
+    return signal_to_segment
 
 
 def decode_signal(signal):
     left, right = signal
-    decode_signal_pattern(left)
+    # Use left to get decoding mapping
+    signal_to_segment = decode_signal_pattern(left)
+    # And apply it on right
+    for r in right:
+        yield SEGMENTS[signal_to_segment["".join(sorted(r))]]
 
 
 def decode_signals(signals):
-    for s in signals:
-        decode_signal(s)
+    c = collections.Counter(d for s in signals for d in decode_signal(s))
+    return c[1] + c[4] + c[7] + c[8]
+
 
 def run_tests():
-    signals = [get_signals_from_str("acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf")]
+    signals = "acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf"
+    signals = [get_signals_from_str(signals)]
     print(decode_signals(signals))
+    signals = [
+        "be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe",
+        "edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc",
+        "fgaebd cg bdaec gdafb agbcfd gdcbef bgcad gfac gcb cdgabef | cg cg fdcagb cbg",
+        "fbegcd cbd adcefb dageb afcb bc aefdc ecdab fgdeca fcdbega | efabcd cedba gadfec cb",
+        "aecbfdg fbg gf bafeg dbefa fcge gcbea fcaegb dgceab fcbdga | gecf egdcabf bgf bfgea",
+        "fgeab ca afcebg bdacfeg cfaedg gcfdb baec bfadeg bafgc acf | gebdcfa ecba ca fadegcb",
+        "dbcfg fgd bdegcaf fgec aegbdf ecdfab fbedc dacgb gdcebf gf | cefg dcbef fcge gbcadfe",
+        "bdfegc cbegaf gecbf dfcage bdacg ed bedf ced adcbefg gebcd | ed bcgafe cdgba cbgef",
+        "egadfb cdbfeg cegd fecab cgb gbdefca cg fgcdab egfdb bfceg | gbdfcae bgc cg cgb",
+        "gcafb gcf dcaebfg ecagb gf abcdeg gaef cafbge fdbac fegbdc | fgae cfgab fg bagce",
+    ]
+    signals = [get_signals_from_str(s) for s in signals]
+    assert decode_signals(signals) == 26
 
 
 def get_solutions():
     signals = get_signals_from_file()
-    # print(decode_signals(signals))
+    print(decode_signals(signals))
 
 
 if __name__ == "__main__":
