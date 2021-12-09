@@ -44,29 +44,35 @@ def part1(grid):
     return sum(val + 1 for x, y, val in get_low_points(grid))
 
 
-def low_points_from(grid, x, y):
-    low_points = set()
-    queue = collections.deque([(x, y)])
+def get_basin_from_low_point(grid, low_point):
+    basin = set()
+    queue = collections.deque([low_point])
     while queue:
-        x, y = queue.popleft()
-        val = grid[x][y]
-        lower_points = [(x2, y2) for x2, y2, v in neighbours(grid, x, y) if v < val]
-        if len(lower_points) == 0:
-            low_points.add((x, y))
-        else:
-            for x2, y2 in lower_points:
-                queue.append((x2, y2))
-    return low_points
+        pos = queue.popleft()
+        if pos not in basin:
+            basin.add(pos)
+            x, y = pos
+            val = grid[x][y]
+            for x2, y2, v2 in neighbours(grid, x, y):
+                if v2 > val and v2 != 9:
+                    queue.append((x2, y2))
+    return basin
 
 
 def part2(grid):
-    basins = dict()
-    for x, y, val in points(grid):
-        if val != 9:
-            low_points = low_points_from(grid, x, y)
-            if len(low_points) == 1:
-                low_point = low_points.pop()
-                basins.setdefault(low_point, []).append((x, y))
+    basins = {
+        (x, y): get_basin_from_low_point(grid, (x, y))
+        for x, y, val in get_low_points(grid)
+    }
+    # Additional verification that no one asked
+    # "all other locations will always be part of exactly one basin"
+    if False:
+        point_to_basins = dict()
+        for low_point, basin in basins.items():
+            for point in basin:
+                point_to_basins.setdefault(point, []).append(low_point)
+        for low_points in point_to_basins.values():
+            assert len(low_points) == 1
     basins_len = sorted([len(basin) for basin in basins.values()], reverse=True)
     return basins_len[0] * basins_len[1] * basins_len[2]
 
