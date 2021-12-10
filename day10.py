@@ -30,10 +30,10 @@ def parse_string(s):
         c, nb = characters[char]
         if nb == 1:
             stack.append(c)
+        elif stack and stack[-1] == c:
+            stack.pop()
         else:
-            last = stack.pop()
-            if last != c:
-                return c, []
+            return c, []
     return None, stack
 
 
@@ -82,6 +82,7 @@ def run_tests():
     assert get_completion_score("[({(<(())[]>[[{[]{<()<>>") == 288957
     assert get_completion_score("<{([{{}}[<[[[<>{}]]]>[]]") == 294
     assert get_completion_final_score(lines) == 288957
+    assert parse_string(")") == (")", [])
 
 
 def get_solutions():
