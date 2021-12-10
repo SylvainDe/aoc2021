@@ -19,4 +19,4 @@ https://adventofcode.com/2021/day/8 : 2/2
 
 https://adventofcode.com/2021/day/9 : 2/2
 
-https://adventofcode.com/2021/day/10 : 0/2
+https://adventofcode.com/2021/day/10 : 2/2
