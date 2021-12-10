@@ -15,13 +15,6 @@ for (a, b) in pairs:
     characters[a] = (b, 1)
     characters[b] = (b, -1)
 
-corruption_score = {
-    ")": 3,
-    "]": 57,
-    "}": 1197,
-    ">": 25137,
-}
-
 
 def parse_string(s):
     """Return (first invalid char (or None), expected stack (or empty)."""
@@ -37,11 +30,25 @@ def parse_string(s):
     return None, stack
 
 
+# Part 1 - corruption score
+corruption_score = {
+    ")": 3,
+    "]": 57,
+    "}": 1197,
+    ">": 25137,
+}
+
+
 def get_corruption_score(s):
     invalid, _ = parse_string(s)
     return corruption_score.get(invalid, 0)
 
 
+def get_corruption_final_score(lines):
+    return sum(get_corruption_score(l) for l in lines)
+
+
+# Part 2 - completion score
 completion_score = {
     ")": 1,
     "]": 2,
@@ -53,10 +60,6 @@ completion_score = {
 def get_completion_score(s):
     _, stack = parse_string(s)
     return sum(completion_score[c] * 5 ** i for i, c in enumerate(stack))
-
-
-def get_corruption_final_score(lines):
-    return sum(get_corruption_score(l) for l in lines)
 
 
 def get_completion_final_score(lines):
