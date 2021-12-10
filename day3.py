@@ -76,6 +76,9 @@ def get_solutions():
     diag = get_diag_from_file()
     print(get_power_consumption(diag))
     print(get_life_support_rating(diag))
+    diag = get_diag_from_file("day3_input2.txt")
+    print(get_power_consumption(diag))
+    print(get_life_support_rating(diag))
 
 
 if __name__ == "__main__":
