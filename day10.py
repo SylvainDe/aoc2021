@@ -23,7 +23,8 @@ corruption_score = {
 }
 
 
-def get_corruption_score(s):
+def parse_string(s):
+    """Return (first invalid char (or None), expected stack (or empty)."""
     stack = list()
     for char in s:
         c, nb = characters[char]
@@ -32,8 +33,13 @@ def get_corruption_score(s):
         else:
             last = stack.pop()
             if last != c:
-                return corruption_score[c]
-    return 0
+                return c, []
+    return None, stack
+
+
+def get_corruption_score(s):
+    invalid, _ = parse_string(s)
+    return corruption_score.get(invalid, 0)
 
 
 completion_score = {
@@ -45,15 +51,7 @@ completion_score = {
 
 
 def get_completion_score(s):
-    stack = list()
-    for char in s:
-        c, nb = characters[char]
-        if nb == 1:
-            stack.append(c)
-        else:
-            last = stack.pop()
-            if last != c:
-                return 0
+    _, stack = parse_string(s)
     return sum(completion_score[c] * 5 ** i for i, c in enumerate(stack))
 
 
