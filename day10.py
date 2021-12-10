@@ -54,11 +54,7 @@ def get_completion_score(s):
             last = stack.pop()
             if last != c:
                 return 0
-    score = 0
-    for c in reversed(stack):
-        score *= 5
-        score += completion_score[c]
-    return score
+    return sum(completion_score[c] * 5 ** i for i, c in enumerate(stack))
 
 
 def get_corruption_final_score(lines):
@@ -68,8 +64,7 @@ def get_corruption_final_score(lines):
 def get_completion_final_score(lines):
     scores = [get_completion_score(l) for l in lines]
     scores = sorted([s for s in scores if s])
-    nb = len(scores)
-    return scores[nb // 2]
+    return scores[len(scores) // 2]
 
 
 def run_tests():
