@@ -8,25 +8,19 @@ def get_lines_from_file(file_path="day10_input.txt"):
         return [l.strip() for l in f]
 
 
-pairs = ["()", "{}", "<>", "[]"]
-
-characters = dict()
-for (a, b) in pairs:
-    characters[a] = (b, 1)
-    characters[b] = (b, -1)
+opening = {"(": ")", "{": "}", "<": ">", "[": "]"}
 
 
 def parse_string(s):
-    """Return (first invalid char (or None), expected stack (or empty)."""
+    """Return tupe (first invalid char (or None), expected stack (or empty))."""
     stack = list()
     for char in s:
-        c, nb = characters[char]
-        if nb == 1:
-            stack.append(c)
-        elif stack and stack[-1] == c:
+        if char in opening:
+            stack.append(opening[char])
+        elif stack and stack[-1] == char:
             stack.pop()
         else:
-            return c, []
+            return char, []
     return None, stack
 
 
