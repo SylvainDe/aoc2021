@@ -1,6 +1,5 @@
 # vi: set shiftwidth=4 tabstop=4 expandtab:
 import datetime
-import collections
 import itertools
 
 
@@ -33,23 +32,23 @@ def neighbours(p):
 
 def next_step(grid):
     grid2 = {p: v + 1 for p, v in grid.items()}
-    to_flash = collections.deque([p for p, v in grid2.items() if v > 9])
+    to_flash = set(p for p, v in grid2.items() if v > 9)
     flashed = set()
     while to_flash:
-        p = to_flash.popleft()
+        p = to_flash.pop()
         if p not in flashed:
             flashed.add(p)
             for n in neighbours(p):
                 if n in grid2:
                     grid2[n] += 1
                     if grid2[n] > 9:
-                        to_flash.append(n)
+                        to_flash.add(n)
     for p in flashed:
         grid2[p] = 0
     return grid2
 
 
-def next_steps(grid, n):
+def nb_flashes(grid, n):
     nb_flash = 0
     for i in range(n):
         grid = next_step(grid)
@@ -73,9 +72,10 @@ def run_tests():
         "11111",
     ]
     grid = dict(get_grid_from_lines(grid))
-    grid = next_step(grid)
-    grid = next_step(grid)
-    # show_grid(grid)
+    grid1 = next_step(grid)
+    grid2 = next_step(grid1)
+    # show_grid(grid2)
+    assert nb_flashes(grid, 2) == 9
 
     grid = [
         "5483143223",
@@ -90,14 +90,14 @@ def run_tests():
         "5283751526",
     ]
     grid = dict(get_grid_from_lines(grid))
-    assert next_steps(grid, 10) == 204
-    assert next_steps(grid, 100) == 1656
+    assert nb_flashes(grid, 10) == 204
+    assert nb_flashes(grid, 100) == 1656
     assert first_synchro(grid) == 195
 
 
 def get_solutions():
     grid = get_grid_from_file()
-    print(next_steps(grid, 100))
+    print(nb_flashes(grid, 100))
     print(first_synchro(grid))
 
 
