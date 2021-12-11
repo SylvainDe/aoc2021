@@ -57,6 +57,13 @@ def next_steps(grid, n):
     return nb_flash
 
 
+def first_synchro(grid):
+    for i in itertools.count():
+        if all(v == 0 for v in grid.values()):
+            return i
+        grid = next_step(grid)
+
+
 def run_tests():
     grid = [
         "11111",
@@ -85,11 +92,13 @@ def run_tests():
     grid = dict(get_grid_from_lines(grid))
     assert next_steps(grid, 10) == 204
     assert next_steps(grid, 100) == 1656
+    assert first_synchro(grid) == 195
 
 
 def get_solutions():
     grid = get_grid_from_file()
     print(next_steps(grid, 100))
+    print(first_synchro(grid))
 
 
 if __name__ == "__main__":
