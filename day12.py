@@ -1,6 +1,5 @@
 # vi: set shiftwidth=4 tabstop=4 expandtab:
 import datetime
-import collections
 
 
 def get_map_item_from_line(l, sep="-"):
@@ -29,14 +28,13 @@ def build_graph(map_):
 def get_nb_paths(graph, nb_double_visit=0, start="start", end="end"):
     # I suspect there is a much better way using dynamic programming
     nb_path = 0
-    paths = collections.deque([(start, set([start]), 0)])
+    paths = [(start, set([start]), 0)]  # last, visited, double_visit
     while paths:
-        last, visited, double_visit = paths.popleft()
-        if last == end:
-            nb_path += 1
-            continue
+        last, visited, double_visit = paths.pop()
         for succ in graph.get(last, set()):
-            if succ.isupper():
+            if succ == end:
+                nb_path += 1
+            elif succ.isupper():
                 paths.append((succ, visited, double_visit))
             elif succ not in visited:
                 paths.append((succ, visited | set([succ]), double_visit))
