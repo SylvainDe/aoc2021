@@ -26,20 +26,24 @@ def build_graph(map_):
     return graph
 
 
-def get_nb_paths(graph, start="start", end="end"):
+def get_nb_paths(graph, nb_double_visit=0, start="start", end="end"):
     # I suspect there is a much better way using dynamic programming
     nb_path = 0
-    paths = collections.deque([[start]])
+    paths = collections.deque([(start, set([start]), 0)])
     while paths:
-        path = paths.popleft()
-        last = path[-1]
+        last, visited, double_visit = paths.popleft()
         if last == end:
             nb_path += 1
-        # print(last)
+            continue
         for succ in graph.get(last, set()):
-            # print(last, succ)
-            if succ.isupper() or succ not in path:
-                paths.append(path + [succ])
+            if succ.isupper():
+                paths.append((succ, visited, double_visit))
+            elif succ == start:
+                pass
+            elif succ not in visited:
+                paths.append((succ, visited | set([succ]), double_visit))
+            elif nb_double_visit >= double_visit + 1:
+                paths.append((succ, visited, double_visit + 1))
     return nb_path
 
 
@@ -56,6 +60,7 @@ def run_tests():
     map_ = get_map_from_lines(map_)
     graph = build_graph(map_)
     assert get_nb_paths(graph) == 10
+    assert get_nb_paths(graph, 1) == 36
     map_ = [
         "dc-end",
         "HN-start",
@@ -71,6 +76,7 @@ def run_tests():
     map_ = get_map_from_lines(map_)
     graph = build_graph(map_)
     assert get_nb_paths(graph) == 19
+    assert get_nb_paths(graph, 1) == 103
     map_ = [
         "fs-end",
         "he-DX",
@@ -94,12 +100,14 @@ def run_tests():
     map_ = get_map_from_lines(map_)
     graph = build_graph(map_)
     assert get_nb_paths(graph) == 226
+    assert get_nb_paths(graph, 1) == 3509
 
 
 def get_solutions():
     map_ = get_map_from_file()
     graph = build_graph(map_)
     print(get_nb_paths(graph))
+    print(get_nb_paths(graph, 1))
 
 
 if __name__ == "__main__":
