@@ -38,11 +38,9 @@ def get_nb_paths(graph, nb_double_visit=0, start="start", end="end"):
         for succ in graph.get(last, set()):
             if succ.isupper():
                 paths.append((succ, visited, double_visit))
-            elif succ == start:
-                pass
             elif succ not in visited:
                 paths.append((succ, visited | set([succ]), double_visit))
-            elif nb_double_visit >= double_visit + 1:
+            elif succ != start and nb_double_visit >= double_visit + 1:
                 paths.append((succ, visited, double_visit + 1))
     return nb_path
 
