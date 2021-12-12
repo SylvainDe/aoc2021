@@ -56,6 +56,44 @@ def run_tests():
     map_ = get_map_from_lines(map_)
     graph = build_graph(map_)
     assert get_nb_paths(graph) == 10
+    map_ = [
+        "dc-end",
+        "HN-start",
+        "start-kj",
+        "dc-start",
+        "dc-HN",
+        "LN-dc",
+        "HN-end",
+        "kj-sa",
+        "kj-HN",
+        "kj-dc",
+    ]
+    map_ = get_map_from_lines(map_)
+    graph = build_graph(map_)
+    assert get_nb_paths(graph) == 19
+    map_ = [
+        "fs-end",
+        "he-DX",
+        "fs-he",
+        "start-DX",
+        "pj-DX",
+        "end-zg",
+        "zg-sl",
+        "zg-pj",
+        "pj-he",
+        "RW-he",
+        "fs-DX",
+        "pj-RW",
+        "zg-RW",
+        "start-pj",
+        "he-WI",
+        "zg-he",
+        "pj-fs",
+        "start-RW",
+    ]
+    map_ = get_map_from_lines(map_)
+    graph = build_graph(map_)
+    assert get_nb_paths(graph) == 226
 
 
 def get_solutions():
