@@ -18,7 +18,8 @@ else
 fi
 
 # Optional: read cookie config file - setting AOC_SESSION_COOKIE env variable
-source ./.cookie_session.sh 2> /dev/null
+# See template file aoc_cookie_session.sh for instructions
+source ~/aoc_cookie_session.sh 2> /dev/null
 
 # Get input file
 if [ -f "${input_file}" ]; then
