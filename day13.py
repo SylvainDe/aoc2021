@@ -92,8 +92,8 @@ def run_tests():
 
 def get_solutions():
     dots, folds = get_info_from_file()
-    dots = apply_folds(dots, [folds[0]])
-    print(len(dots))
+    print(len(apply_folds(dots, [folds[0]])))
+    show_dots(apply_folds(dots, folds))
 
 if __name__ == "__main__":
     begin = datetime.datetime.now()
