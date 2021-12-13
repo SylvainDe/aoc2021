@@ -42,10 +42,14 @@ def fold_dot(dot, axis, line):
     return tuple(fold_val(c, line) if i == axis else c for i, c in enumerate(dot))
 
 
+def fold_dots(dots, axis, line):
+    return {fold_dot(d, axis, line) for d in dots}
+
+
 def apply_folds(dots, folds):
     axis_vals = {"x": 0, "y": 1}
     for axis, line in folds:
-        dots = {fold_dot(d, axis_vals[axis], line) for d in dots}
+        dots = fold_dots(dots, axis_vals[axis], line)
     return dots
 
 
@@ -95,7 +99,7 @@ def run_tests():
         (4, 1),
     }
     # Step by step
-    dots = {fold_dot(d, 1, 7) for d in dots}
+    dots = fold_dots(dots, 1, 7)
     assert dots == {
         (0, 1),
         (9, 0),
@@ -115,7 +119,7 @@ def run_tests():
         (10, 2),
         (9, 4),
     }
-    dots = {fold_dot(d, 0, 5) for d in dots}
+    dots = fold_dots(dots, 0, 5)
     assert dots == {
         (0, 1),
         (4, 4),
