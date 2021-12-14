@@ -38,7 +38,8 @@ def perform_steps(template, rules, steps):
     return template
 
 
-def get_quantity(template):
+def get_quantity(template, rules, steps):
+    template = perform_steps(template, rules, steps)
     commons = collections.Counter(template).most_common()
     return commons[0][1] - commons[-1][1]
 
@@ -84,13 +85,19 @@ CN -> C""".splitlines()
         perform_steps(template, rules, 4)
         == "NBBNBNBBCCNBCNCCNBBNBBNBBBNBBNBBCBHCBHHNHCBBCBHCB"
     )
-    assert get_quantity(perform_steps(template, rules, 10)) == 1588
+    assert get_quantity(template, rules, 10) == 1588
     assert get_fast_quantity(template, rules, 10) == 1588
+    for t in [template, "NN", "NNN", "HH", "HHH", "HHHH", "CB", "XX"]:
+        for n in range(11):
+            fast = get_fast_quantity(t, rules, n)
+            slow = get_quantity(t, rules, n)
+            if slow != fast:
+                print(t, n, slow, fast)
 
 
 def get_solutions():
     template, rules = get_info_from_file()
-    print(get_quantity(perform_steps(template, rules, 10)))
+    print(get_quantity(template, rules, 10))
     print(get_fast_quantity(template, rules, 40))
 
 
