@@ -126,7 +126,7 @@ def decode_signals2(signals):
 def run_tests():
     signals = "acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf"
     signals = [get_signals_from_str(signals)]
-    print(decode_signals(signals))
+    assert decode_signals(signals) == 0
     signals = [
         "be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe",
         "edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc",
