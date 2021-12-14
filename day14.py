@@ -1,7 +1,6 @@
 # vi: set shiftwidth=4 tabstop=4 expandtab:
 import datetime
 import collections
-import math
 
 
 def get_pair_insertion_rules(line, sep=" -> "):
@@ -53,12 +52,13 @@ def get_fast_quantity(template, rules, steps):
             for pair2 in rules2.get(pair, [pair]):
                 pairs2[pair2] += count
         pairs = pairs2
-    letter_count = collections.Counter()
+    letter_count = collections.Counter(template) - collections.Counter(template[1:-1])
     for (a, b), count in pairs.items():
         letter_count[a] += count
         letter_count[b] += count
+    assert len(template) < 2 or all(count % 2 == 0 for count in letter_count.values())
     commons = letter_count.most_common()
-    return math.ceil(commons[0][1] / 2) - math.ceil(commons[-1][1] / 2)
+    return (commons[0][1] // 2) - (commons[-1][1] // 2)
 
 
 def run_tests():
@@ -87,12 +87,11 @@ CN -> C""".splitlines()
     )
     assert get_quantity(template, rules, 10) == 1588
     assert get_fast_quantity(template, rules, 10) == 1588
-    for t in [template, "NN", "NNN", "HH", "HHH", "HHHH", "CB", "XX"]:
+    for t in [template, "N", "NN", "NNN", "HH", "HHH", "HHHH", "CB", "XX"]:
         for n in range(11):
             fast = get_fast_quantity(t, rules, n)
             slow = get_quantity(t, rules, n)
-            if slow != fast:
-                print(t, n, slow, fast)
+            assert fast == slow
 
 
 def get_solutions():
