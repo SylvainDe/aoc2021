@@ -22,8 +22,7 @@ def neighbours(pos):
 
 
 
-def build_graph(grid):
-    points = dict(points_iter(grid))
+def build_graph(points):
     return {
         p: {p2: points[p2] for p2 in neighbours(p) if p2 in points}
         for p in points
@@ -48,6 +47,19 @@ def shortest_path(graph, entrance, exit):
     assert False
 
 
+def multiply_points(points, n):
+    h = 1 + max(p[0] for p in points)
+    w = 1 + max(p[1] for p in points)
+    points2 = dict()
+    for i in range(0, n):
+        for j in range(0, n):
+            add = i + j
+            for (x, y), val in points.items():
+                val2 = val + add
+                if val2 > 9:
+                    val2 -= 9
+                points2[(x + i * h, y + j * w)] = val2 
+    return points2
 
 
 def run_tests():
@@ -63,14 +75,23 @@ def run_tests():
         "1293138521",
         "2311944581",
     ]
-    graph = build_graph(grid)
+    points = dict(points_iter(grid))
+    graph = build_graph(points)
     assert shortest_path(graph, (0, 0), (len(grid)-1, len(grid[0])-1)) == 40
+    points2 = multiply_points(points, 5)
+    graph2 = build_graph(points2)
+    assert shortest_path(graph2, (0, 0), (5*len(grid)-1, 5*len(grid[0])-1)) == 315
+
 
 
 def get_solutions():
     grid = get_grid_from_file()
-    graph = build_graph(grid)
+    points = dict(points_iter(grid))
+    graph = build_graph(points)
     print(shortest_path(graph, (0, 0), (len(grid)-1, len(grid[0])-1)))
+    points2 = multiply_points(points, 5)
+    graph2 = build_graph(points2)
+    print(shortest_path(graph2, (0, 0), (5*len(grid)-1, 5*len(grid[0])-1)))
 
 if __name__ == "__main__":
     begin = datetime.datetime.now()
