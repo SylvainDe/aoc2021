@@ -4,6 +4,7 @@ import heapq
 
 # Everything looks a lot like AOC 2019 Day 2020
 
+
 def get_grid_from_file(file_path="day15_input.txt"):
     with open(file_path) as f:
         return [l.strip() for l in f]
@@ -21,16 +22,14 @@ def neighbours(pos):
         yield x + dx, y + dy
 
 
-
 def build_graph(points):
-    return {
-        p: {p2: points[p2] for p2 in neighbours(p) if p2 in points}
-        for p in points
-    }
+    return {p: {p2: points[p2] for p2 in neighbours(p) if p2 in points} for p in points}
 
 
-
-def shortest_path(graph, entrance, exit):
+def shortest_path(points):
+    entrance = min(points)
+    exit = max(points)
+    graph = build_graph(points)
     distances = dict()
     heap = [(0, entrance)]
     while heap:
@@ -58,7 +57,7 @@ def multiply_points(points, n):
                 val2 = val + add
                 if val2 > 9:
                     val2 -= 9
-                points2[(x + i * h, y + j * w)] = val2 
+                points2[(x + i * h, y + j * w)] = val2
     return points2
 
 
@@ -76,22 +75,18 @@ def run_tests():
         "2311944581",
     ]
     points = dict(points_iter(grid))
-    graph = build_graph(points)
-    assert shortest_path(graph, (0, 0), (len(grid)-1, len(grid[0])-1)) == 40
+    assert shortest_path(points) == 40
     points2 = multiply_points(points, 5)
-    graph2 = build_graph(points2)
-    assert shortest_path(graph2, (0, 0), (5*len(grid)-1, 5*len(grid[0])-1)) == 315
-
+    assert shortest_path(points2) == 315
 
 
 def get_solutions():
     grid = get_grid_from_file()
     points = dict(points_iter(grid))
-    graph = build_graph(points)
-    print(shortest_path(graph, (0, 0), (len(grid)-1, len(grid[0])-1)))
+    print(shortest_path(points))
     points2 = multiply_points(points, 5)
-    graph2 = build_graph(points2)
-    print(shortest_path(graph2, (0, 0), (5*len(grid)-1, 5*len(grid[0])-1)))
+    print(shortest_path(points2))
+
 
 if __name__ == "__main__":
     begin = datetime.datetime.now()
