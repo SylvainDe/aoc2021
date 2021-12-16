@@ -1,6 +1,8 @@
 # vi: set shiftwidth=4 tabstop=4 expandtab:
 import datetime
 import collections
+import functools
+import operator
 
 
 def get_str_from_file(file_path="day16_input.txt"):
@@ -79,6 +81,34 @@ def sum_version_numbers(packet):
     )
 
 
+def mult(iterable, start=1):
+    """Returns the product of an iterable - like the sum builtin."""
+    return functools.reduce(operator.mul, iterable, start)
+
+
+def eval_packet(packet):
+    type_id = packet.type_id
+    content = packet.content
+    if type_id == 0:
+        return sum(eval_packet(p) for p in content)
+    elif type_id == 1:
+        return mult(eval_packet(p) for p in content)
+    elif type_id == 2:
+        return min(eval_packet(p) for p in content)
+    elif type_id == 3:
+        return max(eval_packet(p) for p in content)
+    elif type_id == 4:
+        return content
+    elif type_id == 5:
+        return int(eval_packet(content[0]) > eval_packet(content[1]))
+    elif type_id == 6:
+        return int(eval_packet(content[0]) < eval_packet(content[1]))
+    elif type_id == 7:
+        return int(eval_packet(content[0]) == eval_packet(content[1]))
+    else:
+        assert False
+
+
 def run_tests():
     s = "D2FE28"
     b = get_bits_from_str(s)
@@ -122,10 +152,25 @@ def run_tests():
     for s, v in examples:
         assert sum_version_numbers(parse_packet(get_bits_from_str(s))) == v
 
+    examples = [
+        ("C200B40A82", 3),
+        ("04005AC33890", 54),
+        ("880086C3E88112", 7),
+        ("CE00C43D881120", 9),
+        ("D8005AC2A8F0", 1),
+        ("F600BC2D8F", 0),
+        ("9C005AC2F8F0", 0),
+        ("9C0141080250320F1802104A08", 1),
+    ]
+    for s, v in examples:
+        assert eval_packet(parse_packet(get_bits_from_str(s))) == v
+
 
 def get_solutions():
     s = get_str_from_file()
-    print(sum_version_numbers(parse_packet(get_bits_from_str(s))))
+    p = parse_packet(get_bits_from_str(s))
+    print(sum_version_numbers(p))
+    print(eval_packet(p))
 
 
 if __name__ == "__main__":
