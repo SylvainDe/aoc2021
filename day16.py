@@ -13,7 +13,7 @@ def get_str_from_file(file_path="day16_input.txt"):
 
 hex_table = {s: bin(int(s, 16))[2:].zfill(4) for s in "0123456789ABCDEF"}
 
-Packet = collections.namedtuple("Packet", ["version", "type_id", "content"])
+Packet = collections.namedtuple("Packet", ["version", "type_id", "value", "content"])
 
 
 def get_bits_from_str(s):
@@ -39,8 +39,7 @@ def parse_literal_value_packet(bit_iter):
         prefix = next(bit_iter)
         content.extend(next_n(bit_iter, 4))
         if prefix == "0":
-            break
-    return bits_to_int(content)
+            return bits_to_int(content)
 
 
 def parse_operator_packet(bit_iter):
@@ -64,21 +63,17 @@ def parse_operator_packet(bit_iter):
 def parse_packet(bits):
     bit_iter = iter(bits)
     version = next_n_bits_to_int(bit_iter, 3)
-    packet_type = next_n_bits_to_int(bit_iter, 3)
-    content = (
-        parse_literal_value_packet(bit_iter)
-        if packet_type == 4
-        else parse_operator_packet(bit_iter)
-    )
-    return Packet(version, packet_type, content)
+    type_id = next_n_bits_to_int(bit_iter, 3)
+    value, content = None, []
+    if type_id == 4:
+        value = parse_literal_value_packet(bit_iter)
+    else:
+        content = parse_operator_packet(bit_iter)
+    return Packet(version, type_id, value, content)
 
 
 def sum_version_numbers(packet):
-    return packet.version + (
-        0
-        if packet.type_id == 4
-        else sum(sum_version_numbers(p) for p in packet.content)
-    )
+    return packet.version + sum(sum_version_numbers(p) for p in packet.content)
 
 
 def mult(iterable, start=1):
@@ -88,23 +83,23 @@ def mult(iterable, start=1):
 
 def eval_packet(packet):
     type_id = packet.type_id
-    content = packet.content
+    content = [eval_packet(p) for p in packet.content]
     if type_id == 0:
-        return sum(eval_packet(p) for p in content)
+        return sum(content)
     elif type_id == 1:
-        return mult(eval_packet(p) for p in content)
+        return mult(content)
     elif type_id == 2:
-        return min(eval_packet(p) for p in content)
+        return min(content)
     elif type_id == 3:
-        return max(eval_packet(p) for p in content)
+        return max(content)
     elif type_id == 4:
-        return content
+        return packet.value
     elif type_id == 5:
-        return int(eval_packet(content[0]) > eval_packet(content[1]))
+        return content[0] > content[1]
     elif type_id == 6:
-        return int(eval_packet(content[0]) < eval_packet(content[1]))
+        return content[0] < content[1]
     elif type_id == 7:
-        return int(eval_packet(content[0]) == eval_packet(content[1]))
+        return content[0] == content[1]
     else:
         assert False
 
@@ -114,7 +109,7 @@ def run_tests():
     b = get_bits_from_str(s)
     assert b == "110100101111111000101000"
     p = parse_packet(b)
-    assert p == Packet(version=6, type_id=4, content=2021)
+    assert p == Packet(version=6, type_id=4, value=2021, content=[])
 
     s = "38006F45291200"
     b = get_bits_from_str(s)
@@ -123,9 +118,10 @@ def run_tests():
     assert p == Packet(
         version=1,
         type_id=6,
+        value=None,
         content=[
-            Packet(version=6, type_id=4, content=10),
-            Packet(version=2, type_id=4, content=20),
+            Packet(version=6, type_id=4, value=10, content=[]),
+            Packet(version=2, type_id=4, value=20, content=[]),
         ],
     )
 
@@ -136,10 +132,11 @@ def run_tests():
     assert p == Packet(
         version=7,
         type_id=3,
+        value=None,
         content=[
-            Packet(version=2, type_id=4, content=1),
-            Packet(version=4, type_id=4, content=2),
-            Packet(version=1, type_id=4, content=3),
+            Packet(version=2, type_id=4, value=1, content=[]),
+            Packet(version=4, type_id=4, value=2, content=[]),
+            Packet(version=1, type_id=4, value=3, content=[]),
         ],
     )
 
