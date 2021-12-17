@@ -90,7 +90,24 @@ def max_x(vx):
 # Based on the properties of the roots of a second degree polynom:
 #  - actual maximum reached on n = vy + 1/2 which is halfway between
 #     integers corresponding to the actual integer maximum (vy & vy+1)
-#  - position is 0 for n = 0 and n = 2*vy + 1
+#  - position is 0 for:
+#      * n = 0
+#      * n = 2*vy + 1
+# We have the following values around the roots:
+#     * y(0) = 0
+#     * y(1) = vy
+#     * ...
+#     * y(2vy) = vy
+#     * y(2vy+1) = 0
+#     * y(2vy+2) = - vy - 1
+# Hence, integer, non-zero values cannot be reached if in the ]-vy-1, vy[ interval
+# Going the other way round from a reached position y:
+#  - if y > 0: 0 < vy <= y
+#  - if y < 0:
+#       * if vy > 0, then y <= -vy - 1 < 0 (on the way down after the maximum)
+#       * if vy < 0, then y <= vy      < 0 (direct shoot downward)
+
+
 def y_position(vy, step):
     return step * vy - (step * (step - 1)) // 2
 
@@ -125,6 +142,19 @@ def yield_divisors_using_divisions(n):
                     yield j
 
 
+def quadratic_equation_integer_solutions(a, b, c):
+    delta = b * b - 4 * a * c
+    if delta >= 0:
+        delta_root = int(math.sqrt(delta))
+        if delta_root * delta_root == delta:
+            bottom = 2 * a
+            for sign in [-1, 1]:
+                top = -b + sign * delta_root
+                solution, rem = divmod(top, bottom)
+                if rem == 0:
+                    yield solution
+
+
 def velocities_to_reach(x, y):
     sign = -1 if x < 0 else 1
     x = abs(x)
@@ -139,12 +169,10 @@ def velocities_to_reach(x, y):
     #  - step == 0 (uninteresting)
     #  - vx == vy
     if d == 0:
-        # print(x, y, "is reachable at various speeds")
-        # assert False  # TODO: Do properly
-        return
+        # TODO: Handle properly: x, y is reachable at various speeds
+        assert False
     # If x != y: step divides x - y
-    divs = list(yield_divisors_using_divisions(d))
-    for step in divs:
+    for step in yield_divisors_using_divisions(d):
         val = step * (1 - step) // 2
         vx, remx = divmod(x - val, step)
         vy, remy = divmod(y - val, step)
@@ -155,25 +183,30 @@ def velocities_to_reach(x, y):
                 yield sign * vx, vy
     # Assuming case (2)
     # v² + v - 2x == 0
-    # /\ = 1 + 8x
-    delta = 1 + 8 * x
-    delta_root = int(math.sqrt(delta))
     vx_values = set()
-    if delta_root * delta_root == delta:
-        for val in [(-1 - delta_root), (-1 + delta_root)]:
-            vx, rem = divmod(val, 2)
-            if rem == 0 and vx >= 0:
-                assert x_position(vx, vx + 1) == x
-                vx_values.add(vx)
-    for vx in vx_values:
-        # We have a lower bound for the number of steps
-        # vy = (2*y) + s*(s-1) / (2*s)
-        for step in range(vx, vx + 2000):  # TODO: Improve range
-            val = 2 * y + step * (step - 1)
-            vy, remy = divmod(val, 2 * step)
-            if remy == 0:
-                assert position(vx, vy, step) == (x, y)
-                yield sign * vx, vy
+    for vx in quadratic_equation_integer_solutions(1, 1, -2 * x):
+        if vx >= 0:
+            assert x_position(vx, vx + 1) == x
+            vx_values.add(vx)
+    if y == 0:
+        assert x
+        # There is no good way to handle this so here is a bad way
+        for vy in range(1, 100):
+            step = 2 * vy + 1
+            for vx in vx_values:
+                if step > vx:
+                    assert position(vx, vy, step) == (x, y)
+                    yield sign * vx, vy
+    else:
+        vy_range = range(1, y + 1) if y > 0 else range(y, -y - 1 + 1)
+        for vy in vy_range:
+            # y = -step²/2 + step(2v+1)/2
+            # step² -step (2v+1) + 2y = 0
+            for step in quadratic_equation_integer_solutions(1, -2 * vy - 1, 2 * y):
+                for vx in vx_values:
+                    if step > vx:
+                        assert position(vx, vy, step) == (x, y)
+                        yield sign * vx, vy
 
 
 def find_velocities(area):
