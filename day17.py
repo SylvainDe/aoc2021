@@ -56,8 +56,9 @@ def y_position_slow(vy, step):
 #      until it reaches 0 then it stays 0
 # x-position is [0,  vx,   2*vx-1, 3*vx-(1+2), ..., n*vx - sum(1..n-1)
 #      until it reaches the speed is 0 then position does not change
-#  n*vx - sum(1..n-1) = n*vx - n*(n-1)/2
-#                     = n * (vx - (n-1)/2)
+#  x(n) = n*vx - sum(1..n-1)
+#       = n*vx - n*(n-1)/2
+#       = n * (vx - (n-1)/2)
 def x_position(vx, step):
     sign = -1 if vx < 0 else 1
     vx = abs(vx)
@@ -79,10 +80,17 @@ def max_x(vx):
 #       step is [0,  1,    2,      3,          ..., n
 # y-velocity is [vy, vy-1, vy-2,   vy-3,       ..., vy - n, ...,
 #      until it reaches 0 (at the top) then same in reverse
-# y-position is [0,  vy,   2*vy-1, 3*vy-(1+2), ...,
+# y-position is [0,  vy,   2*vy-1, 3*vy-(1+2), ..., n*vy - sum(1..n-1)
 #      until it reaches the top then same in reverse
-#  n*vy - sum(1..n-1) = n*vy - n*(n-1)/2
-#                     = n * (vy - (n-1)/2)
+#  y(n) = n*vy - sum(1..n-1)
+#       = n*vy - n*(n-1)/2
+#       = n * (vy - (n-1)/2)
+#       = -n²/2 + n(2vy+1)/2
+#
+# Based on the properties of the roots of a second degree polynom:
+#  - actual maximum reached on n = vy + 1/2 which is halfway between
+#     integers corresponding to the actual integer maximum (vy & vy+1)
+#  - position is 0 for n = 0 and n = 2*vy + 1
 def y_position(vy, step):
     return step * vy - (step * (step - 1)) // 2
 
@@ -158,6 +166,7 @@ def velocities_to_reach(x, y):
                 assert x_position(vx, vx + 1) == x
                 vx_values.add(vx)
     for vx in vx_values:
+        # We have a lower bound for the number of steps
         # vy = (2*y) + s*(s-1) / (2*s)
         for step in range(vx, vx + 2000):  # TODO: Improve range
             val = 2 * y + step * (step - 1)
