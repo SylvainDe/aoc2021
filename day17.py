@@ -29,6 +29,25 @@ def position(vx, vy, step):
     return x, y
 
 
+def x_position_slow(vx, step):
+    x = 0
+    for s in range(step):
+        x += vx
+        if vx > 0:
+            vx -= 1
+        elif vx < 0:
+            vx += 1
+    return x
+
+
+def y_position_slow(vy, step):
+    y = 0
+    for s in range(step):
+        y += vy
+        vy -= 1
+    return y
+
+
 # Analysis of the x position
 #############################
 #       step is [0,  1,    2,      3,          ..., n
@@ -43,6 +62,15 @@ def x_position(vx, step):
     vx = abs(vx)
     step = min(step, vx)
     return sign * (step * vx - (step * (step - 1)) // 2)
+
+
+def max_x(vx):
+    # max is reached after abs(vx) steps
+    x1 = x_position(vx, abs(vx))
+    x2 = x_position(vx, abs(vx) + 1)
+    x3 = x_position(vx, abs(vx) + 2)
+    assert x1 == x2 == x3
+    return x1
 
 
 # Analysis of the y position
@@ -61,11 +89,21 @@ def y_position(vy, step):
 def max_y(vy):
     if vy < 0:
         return 0
-    # Assuming we shoot upward, top is reach after vy position
+    # Assuming we shoot upward, top is reached after vy steps
     y1 = y_position(vy, vy)
     y2 = y_position(vy, vy + 1)
     assert y1 == y2
     return y1
+
+
+def test_position(step, vx, vy, expected_position=None):
+    x, y = position(vx, vy, step)
+    if expected_position is not None:
+        assert (x, y) == expected_position
+    assert x_position_slow(vx, step) == x
+    assert x_position(vx, step) == x
+    assert y_position_slow(vy, step) == y
+    assert y_position(vy, step) == y
 
 
 def position_tests():
@@ -81,11 +119,11 @@ def position_tests():
         (7, (28, -7)),
         (8, (28, -12)),
     ]
-    for s, (x, y) in tests:
-        assert position(vx, vy, s) == (x, y)
-        assert x_position(vx, s) == x
-        assert y_position(vy, s) == y
+    for s, pos in tests:
+        test_position(s, vx, vy, pos)
+    assert max_x(vx) == 28
     assert max_y(vy) == 3
+
     vx, vy = 6, 3
     tests = [
         (0, (0, 0)),
@@ -99,24 +137,21 @@ def position_tests():
         (8, (21, -4)),
         (9, (21, -9)),
     ]
-    for s, (x, y) in tests:
-        assert position(vx, vy, s) == (x, y)
-        assert x_position(vx, s) == x
-        assert y_position(vy, s) == y
-
+    for s, pos in tests:
+        test_position(s, vx, vy, pos)
+    assert max_x(vx) == 21
     assert max_y(vy) == 6
+
     # Additional tests
     vx, vy = 15, 10
     for s in range(16):
-        x, y = position(vx, vy, s)
-        assert x_position(vx, s) == x
-        assert y_position(vy, s) == y
+        test_position(s, vx, vy)
+    assert max_x(vx) == 120
     assert max_y(vy) == 55
     vx, vy = -15, -10
     for s in range(16):
-        x, y = position(vx, vy, s)
-        assert x_position(vx, s) == x
-        assert y_position(vy, s) == y
+        test_position(s, vx, vy)
+    assert max_x(vx) == -120
     assert max_y(vy) == 0
 
 
