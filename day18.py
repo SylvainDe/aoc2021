@@ -152,7 +152,7 @@ def explode_tests():
     for s1, s2 in tests:
         pair = get_pair_from_str(s1)
         assert explode(pair)
-        assert get_str_from_pair(pair) == s2
+        assert pair == get_pair_from_str(s2)
 
 
 def split_tests():
@@ -163,7 +163,7 @@ def split_tests():
     for s, s2 in tests:
         pair = get_pair_from_str(s)
         assert split(pair)
-        assert get_str_from_pair(pair) == s2
+        assert pair == get_pair_from_str(s2)
 
 
 def reduce_tests():
@@ -171,22 +171,23 @@ def reduce_tests():
     s2 = "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"
     pair = get_pair_from_str(s)
     reduce_pair(pair)
-    assert get_str_from_pair(pair) == s2
+    assert pair == get_pair_from_str(s2)
 
 
 def add_tests():
     p1 = get_pair_from_str("[[[[4,3],4],4],[7,[[8,4],9]]]")
     p2 = get_pair_from_str("[1,1]")
     pair = add_pair(p1, p2)
-    s = "[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"
-    assert get_str_from_pair(pair) == s
+    pair2 = get_pair_from_str("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]")
+    assert pair == pair2
 
 
 def adds_tests():
     lst = ["[1,1]", "[2,2]", "[3,3]", "[4,4]", "[5,5]"]
     pairs = [get_pair_from_str(s) for s in lst]
     pair = add_pairs(pairs)
-    assert get_str_from_pair(pair) == "[[[[3,0],[5,3]],[4,4]],[5,5]]"
+    pair2 = get_pair_from_str("[[[[3,0],[5,3]],[4,4]],[5,5]]")
+    assert pair == pair2
 
 
 def magnitude_tests():
