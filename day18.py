@@ -6,20 +6,22 @@ import itertools
 def get_pair_from_str(s):
     digits = []
     pair = []
+    depth = 0
     for c in s:
         if c.isdigit():
             digits.append(c)
         else:
             if digits:
-                pair.append(int("".join(digits)))
+                pair.append((int("".join(digits)), depth))
                 digits = []
-            pair.append(c)
+            if c == "[":
+                depth += 1
+            elif c == "]":
+                depth -= 1
+            elif c == ",":
+                pair.append((c, depth))
     assert digits == []
     return pair
-
-
-def get_str_from_pair(pair):
-    return "".join(str(e) for e in pair)
 
 
 def get_pairs_from_file(file_path="day18_input.txt"):
@@ -28,50 +30,40 @@ def get_pairs_from_file(file_path="day18_input.txt"):
 
 
 def explode(pair):
-    nb_pos = []
-    explo = None
-    depth = 0
-    for i, e in enumerate(pair):
-        if e == "[":
-            depth += 1
-        elif e == "]":
-            depth -= 1
-        elif e == ",":
-            pass
-        else:
-            assert isinstance(e, int)
-            nb_pos.append(i)
+    for i, (val, depth) in enumerate(pair):
+        assert (isinstance(val, int)) == (i % 2 == 0)
+        assert (val == ",") == (i % 2 == 1)
+        if i % 2 == 0:
             if depth >= 5:
                 assert depth == 5
-                if explo is None:
-                    explo = len(nb_pos) - 1
-    assert depth == 0
-    if explo is not None:
-        i = nb_pos[explo]
-        assert 0 <= explo < len(nb_pos)
-        assert 0 <= explo + 1 < len(nb_pos)
-        assert nb_pos[explo + 1] == i + 2
-        if 0 <= explo - 1 < len(nb_pos):
-            pair[nb_pos[explo - 1]] += pair[i]
-        if 0 <= explo + 2 < len(nb_pos):
-            pair[nb_pos[explo + 2]] += pair[nb_pos[explo + 1]]
-        pair.pop(i - 1)
-        pair.pop(i - 1)
-        pair.pop(i - 1)
-        pair.pop(i - 1)
-        pair[i - 1] = 0
-        return True
+                assert 0 <= i + 2 < len(pair)
+                val2, depth2 = pair[i + 2]
+                assert depth == depth2
+                if 0 <= i - 2 < len(pair):
+                    val3, depth3 = pair[i - 2]
+                    pair[i - 2] = (val3 + val, depth3)
+                if 0 <= i + 4 < len(pair):
+                    val3, depth3 = pair[i + 4]
+                    pair[i + 4] = (val3 + val2, depth3)
+                pair.pop(i)
+                pair.pop(i)
+                pair[i] = (0, depth - 1)
+                return True
     return False
 
 
 def split(pair):
-    for i, e in enumerate(pair):
-        if isinstance(e, int) and e >= 10:
-            half, rem = divmod(e, 2)
+    for i, (val, depth) in enumerate(pair):
+        assert (isinstance(val, int)) == (i % 2 == 0)
+        assert (val == ",") == (i % 2 == 1)
+        if i % 2 == 0 and val >= 10:
+            new_depth = depth + 1
+            half, rem = divmod(val, 2)
             left, right = half, half + rem
             pair.pop(i)
-            for item in reversed(["[", left, ",", right, "]"]):
-                pair.insert(i, item)
+            pair.insert(i, (right, new_depth))
+            pair.insert(i, (",", new_depth))
+            pair.insert(i, (left, new_depth))
             return True
     return False
 
@@ -86,7 +78,11 @@ def reduce_pair(pair):
 
 
 def add_pair(pair1, pair2):
-    pair = ["["] + pair1 + [","] + pair2 + ["]"]
+    pair = (
+        [(val, depth + 1) for val, depth in pair1]
+        + [(",", 1)]
+        + [(val, depth + 1) for val, depth in pair2]
+    )
     reduce_pair(pair)
     return pair
 
@@ -101,29 +97,22 @@ def add_pairs(lst):
     return res
 
 
-def magnitude(pair):
+def magnitude(pair, depth_arg=1):
     if len(pair) == 1:
-        assert isinstance(pair[0], int)
-        return pair[0]
-    depth = 0
+        val, depth = pair[0]
+        assert isinstance(val, int)
+        return val
     coma = None
-    for i, e in enumerate(pair):
-        if e == "[":
-            depth += 1
-        elif e == "]":
-            depth -= 1
-        elif isinstance(e, int):
-            pass
-        else:
-            assert e == ","
-            if depth == 1:
-                assert coma is None
-                coma = i
-    assert depth == 0
+    for i, (val, depth) in enumerate(pair):
+        assert (isinstance(val, int)) == (i % 2 == 0)
+        assert (val == ",") == (i % 2 == 1)
+        if val == "," and depth == depth_arg:
+            assert coma is None
+            coma = i
     assert coma is not None
-    left = pair[1:coma]
-    right = pair[coma + 1 : -1]
-    return 3 * magnitude(left) + 2 * magnitude(right)
+    left = pair[0:coma]
+    right = pair[coma + 1 :]
+    return 3 * magnitude(left, depth_arg + 1) + 2 * magnitude(right, depth_arg + 1)
 
 
 def string_handling_tests():
@@ -137,8 +126,6 @@ def string_handling_tests():
     ]
     for s in tests:
         pair = get_pair_from_str(s)
-        s2 = get_str_from_pair(pair)
-        assert s == s2
 
 
 def explode_tests():
