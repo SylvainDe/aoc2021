@@ -1,7 +1,6 @@
 # vi: set shiftwidth=4 tabstop=4 expandtab:
 import datetime
-import ast
-import collections
+import itertools
 
 
 def get_pair_from_str(s):
@@ -221,6 +220,7 @@ def get_solutions():
     pairs = get_pairs_from_file()
     pair = add_pairs(pairs)
     print(magnitude(pair))
+    print(max(magnitude(add_pair(a, b)) for a, b in itertools.permutations(pairs, 2)))
 
 
 if __name__ == "__main__":
