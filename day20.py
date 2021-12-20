@@ -65,7 +65,7 @@ def enhance(points, algo):
     return points2
 
 
-def enhance2(points, algo):
+def enhance_n(points, algo, n):
     if not algo[0]:
         algo_odd, algo_even = algo, algo
     else:
@@ -75,9 +75,8 @@ def enhance2(points, algo):
         algo_even = [not val for val in algo]
         # Then on next step, this needs to be taken into account
         algo_odd = list(reversed(algo))
-    for i in range(2):
+    for i in range(n):
         points = enhance(points, algo_even if i % 2 == 0 else algo_odd)
-        show_points(points)
     return points
 
 
@@ -92,14 +91,18 @@ def run_tests():
         "..###",
     ]
     points = get_points_from_lines(grid_str)
-    points = enhance2(points, algo)
-    assert len(points) == 35
+    points2 = enhance_n(points, algo, 2)
+    assert len(points2) == 35
+    points50 = enhance_n(points, algo, 50)
+    assert len(points50) == 3351
 
 
 def get_solutions():
     algo, points = get_info_from_file()
-    points = enhance2(points, algo)
-    print(len(points))
+    points2 = enhance_n(points, algo, 2)
+    print(len(points2))
+    points50 = enhance_n(points, algo, 50)
+    print(len(points50))
 
 
 if __name__ == "__main__":
