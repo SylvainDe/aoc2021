@@ -7,7 +7,6 @@ VALUES = [".", "#"]
 def get_algo_from_str(s):
     assert len(s) == 512 == 2 ** 9
     assert all(c in VALUES for c in s)
-    assert s[0] != "#"
     return [c == "#" for c in s]
 
 
@@ -66,9 +65,19 @@ def enhance(points, algo):
     return points2
 
 
-def enhance_n(points, algo, n):
-    for _ in range(n):
-        points = enhance(points, algo)
+def enhance2(points, algo):
+    if not algo[0]:
+        algo_odd, algo_even = algo, algo
+    else:
+        # If algo starts with '#', points in the middle of nowhere gets lit
+        # Instead of keeping track of lit points, let's keep track of unlit points
+        # by reversing the algo values
+        algo_even = [not val for val in algo]
+        # Then on next step, this needs to be taken into account
+        algo_odd = list(reversed(algo))
+    for i in range(2):
+        points = enhance(points, algo_even if i % 2 == 0 else algo_odd)
+        show_points(points)
     return points
 
 
@@ -83,15 +92,14 @@ def run_tests():
         "..###",
     ]
     points = get_points_from_lines(grid_str)
-    points = enhance_n(points, algo, 2)
+    points = enhance2(points, algo)
     assert len(points) == 35
 
 
 def get_solutions():
-    pass
-    # algo, points = get_info_from_file()
-    # points = enhance_n(points, algo, 2)
-    # print(len(points))
+    algo, points = get_info_from_file()
+    points = enhance2(points, algo)
+    print(len(points))
 
 
 if __name__ == "__main__":
