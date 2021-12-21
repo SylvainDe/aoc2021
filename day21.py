@@ -77,7 +77,7 @@ def game2(positions, final_score=21, rolls=3, sides=3):
             count3 = count * count2
             pos, score = player
             pos += val
-            pos % 10
+            pos %= 10
             score += pos + 1  # Shift position back to compute score
             if score >= final_score:
                 nb_wins[player_idx] += count3
@@ -85,18 +85,19 @@ def game2(positions, final_score=21, rolls=3, sides=3):
                 players_lst = list(players)
                 players_lst[player_idx] = (pos, score)
                 ongoing_games[(tuple(players_lst), next_player_idx)] += count3
-    print(nb_wins)
+    return max(nb_wins)
 
 
 def run_tests():
     positions = [4, 8]
     assert game(positions) == 739785
-    print(game2(positions))
+    assert game2(positions) == 444356092776315
 
 
 def get_solutions():
     positions = get_positions_from_file()
     print(game(positions))
+    print(game2(positions))
 
 
 if __name__ == "__main__":
