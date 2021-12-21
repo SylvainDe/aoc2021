@@ -43,6 +43,10 @@ def raw_gap(p1, p2):
     return tuple((c1 - c2) for c1, c2 in zip(p1, p2))
 
 
+def manhattan(p1, p2):
+    return sum(abs(c1 - c2) for c1, c2 in zip(p1, p2))
+
+
 def get_gaps(info):
     # Mapping gaps to list of (scanner number, beacon1, beacon2)
     gaps = dict()
@@ -101,7 +105,7 @@ def convert_scanner_info(reference_points, scanner_info, nb_common):
                 dx, dy, dz = delta
                 info = [(x + dx, y + dy, z + dz) for x, y, z in info]
                 assert len(set(info).intersection(set(reference_points))) >= nb_common
-                return info
+                return info, delta
     assert False
 
 
@@ -111,7 +115,8 @@ def convert_points(info, nb_common):
     scanners = set(range(len(info)))
     assert scanners == set(overlaps.keys())
     # Assume scanner 0 is the reference and convert everything into it
-    converted = {0: info[0]}
+    # Map index to tuple (list of points, position of scanner)
+    converted = {0: (info[0], (0, 0, 0))}
     change = True
     while change:
         change = False
@@ -119,14 +124,19 @@ def convert_points(info, nb_common):
             for neigh in overlaps[scan]:
                 if scan not in converted and neigh in converted:
                     converted[scan] = convert_scanner_info(
-                        converted[neigh], info[scan], nb_common
+                        converted[neigh][0], info[scan], nb_common
                     )
                     change = True
     assert all(s in converted for s in scanners)
     all_points = set()
-    for points in converted.values():
+    for (points, scanner) in converted.values():
         all_points.update(points)
-    return all_points
+    all_scanners = [scanner for points, scanner in converted.values()]
+    return all_points, all_scanners
+
+
+def get_max_distance(points):
+    return max(manhattan(p1, p2) for p1, p2 in itertools.combinations(points, 2))
 
 
 def run_tests():
@@ -138,13 +148,17 @@ def run_tests():
     assert 0 in overlaps[1]
     assert 1 in overlaps[4]
     assert 4 in overlaps[1]
-    assert len(convert_points(info, nb_common)) == 79
+    converted_points, converted_scanners = convert_points(info, nb_common)
+    assert len(converted_points) == 79
+    assert get_max_distance(converted_scanners) == 3621
 
 
 def get_solutions():
     nb_common = 12
     info = get_info_from_file()
-    print(len(convert_points(info, nb_common)))
+    converted_points, converted_scanners = convert_points(info, nb_common)
+    print(len(converted_points))
+    print(get_max_distance(converted_scanners))
 
 
 if __name__ == "__main__":
