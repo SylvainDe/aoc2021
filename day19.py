@@ -48,7 +48,7 @@ def get_gaps(info):
     return gaps
 
 
-def get_overlaps(info, nb_common=12):
+def get_overlaps(info, nb_common):
     gaps = get_gaps(info)
     # If scanners have n overlapping points, we expect n*(n-1)/2
     # common pairs of points seen from the 2 scanners
@@ -64,15 +64,24 @@ def get_overlaps(info, nb_common=12):
     return [pair for pair, count in overlaps.items() if count >= nb_overlaps]
 
 
+def get_nb_points(info, nb_common):
+    overlaps = get_overlaps(info, nb_common)
+    return sum(len(scanner) for scanner in info) - nb_common * len(overlaps)
+
+
 def run_tests():
+    nb_common = 12
     info = get_info_from_file("day19_example_input.txt")
-    overlaps = get_overlaps(info)
+    overlaps = get_overlaps(info, nb_common)
     assert (0, 1) in overlaps
     assert (1, 4) in overlaps
+    assert get_nb_points(info, nb_common) == 79
 
 
 def get_solutions():
+    nb_common = 12
     info = get_info_from_file()
+    print(get_nb_points(info, nb_common))  # NOT THE RIGHT ANSWER
     # print(get_overlaps(info))
 
 
