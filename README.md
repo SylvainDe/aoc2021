@@ -40,3 +40,5 @@ https://adventofcode.com/2021/day/18 : 0/2
 https://adventofcode.com/2021/day/19 : 0/2
 
 https://adventofcode.com/2021/day/20 : 0/2
+
+https://adventofcode.com/2021/day/21 : 0/2
