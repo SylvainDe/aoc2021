@@ -51,15 +51,7 @@ def get_sum_quantum_dice(sides, nb_rolls):
     return count
 
 
-def my_dict_pop(d):
-    for k, v in d.items():
-        d.pop(k)
-        return k, v
-    assert False
-
-
 def game2(positions, final_score=21, rolls=3, sides=3):
-    # TODO: Does not quite work
     nb_player = len(positions)
     nb_wins = [0 for _ in positions]
     # Shift positions by 1 to go from [1, 10] to [0, 9]
@@ -69,22 +61,24 @@ def game2(positions, final_score=21, rolls=3, sides=3):
     # Compute properties of dice just once
     dice_count = get_sum_quantum_dice(sides, rolls)
     while ongoing_games:
-        game, count = my_dict_pop(ongoing_games)
-        players, player_idx = game
-        player = players[player_idx]
-        next_player_idx = (player_idx + 1) % nb_player
-        for val, count2 in dice_count.items():
-            count3 = count * count2
-            pos, score = player
-            pos += val
-            pos %= 10
-            score += pos + 1  # Shift position back to compute score
-            if score >= final_score:
-                nb_wins[player_idx] += count3
-            else:
-                players_lst = list(players)
-                players_lst[player_idx] = (pos, score)
-                ongoing_games[(tuple(players_lst), next_player_idx)] += count3
+        ongoing_games2 = collections.Counter()
+        for game, count in ongoing_games.items():
+            players, player_idx = game
+            player = players[player_idx]
+            next_player_idx = (player_idx + 1) % nb_player
+            for val, count2 in dice_count.items():
+                count3 = count * count2
+                pos, score = player
+                pos += val
+                pos %= 10
+                score += pos + 1  # Shift position back to compute score
+                if score >= final_score:
+                    nb_wins[player_idx] += count3
+                else:
+                    players_lst = list(players)
+                    players_lst[player_idx] = (pos, score)
+                    ongoing_games2[(tuple(players_lst), next_player_idx)] += count3
+        ongoing_games = ongoing_games2
     return max(nb_wins)
 
 
