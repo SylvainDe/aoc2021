@@ -22,7 +22,7 @@ def get_sum_rolls(dice, n):
     return sum(next(dice) for _ in range(n))
 
 
-def game(positions):
+def game(positions, final_score=1000, rolls=3):
     nb_player = len(positions)
     # Shift positions by 1 to go from [1, 10] to [0, 9]
     players = [(pos - 1, 0) for pos in positions]
@@ -30,14 +30,13 @@ def game(positions):
     for i in itertools.count():
         player = i % nb_player
         pos, score = players[player]
-        pos += get_sum_rolls(dice, 3)
+        pos += get_sum_rolls(dice, rolls)
         pos %= 10
-        score += pos + 1
+        score += pos + 1  # Shift position back to compute score
         players[player] = (pos, score)
-        if score >= 1000:
-            break
-    nb_rolls = 3 * (i + 1)
-    return min([s for p, s in players]) * nb_rolls
+        if score >= final_score:
+            nb_rolls = rolls * (i + 1)
+            return min([s for p, s in players]) * nb_rolls
 
 
 def run_tests():
