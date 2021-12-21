@@ -1,5 +1,6 @@
 # vi: set shiftwidth=4 tabstop=4 expandtab:
 import datetime
+import itertools
 
 VALUES = [".", "#"]
 
@@ -47,22 +48,24 @@ def get_square(point):
             yield x + dx, y + dy
 
 
+def get_range(vals, width):
+    return range(min(vals) - width, max(vals) + width + 1)
+
+
+def get_square_value(point, points):
+    return int("".join([str(int(p in points)) for p in get_square(point)]), base=2)
+
+
 def enhance(points, algo):
-    x_vals = [p[0] for p in points]
-    y_vals = [p[1] for p in points]
-    x_range = list(range(min(x_vals) - 2, 1 + 2 + max(x_vals)))
-    y_range = list(range(min(y_vals) - 2, 1 + 2 + max(y_vals)))
-    points2 = set()
-    for x in x_range:
-        for y in y_range:
-            point = (x, y)
-            square = int(
-                "".join([str(int(p in points)) for p in get_square(point)]), base=2
-            )
-            algo_val = algo[square]
-            if algo_val:
-                points2.add(point)
-    return points2
+    assert not algo[0]
+    width = 1  # Width of the border to consider
+    x_range = get_range([p[0] for p in points], width)
+    y_range = get_range([p[1] for p in points], width)
+    return {
+        point
+        for point in itertools.product(x_range, y_range)
+        if algo[get_square_value(point, points)]
+    }
 
 
 def enhance_n(points, algo, n):
@@ -95,6 +98,19 @@ def run_tests():
     assert len(points2) == 35
     points50 = enhance_n(points, algo, 50)
     assert len(points50) == 3351
+    # Additional test
+    algo_str = "." + "#" * 511
+    algo = get_algo_from_str(algo_str)
+    grid_str = [
+        "...",
+        ".#.",
+        "...",
+    ]
+    points = get_points_from_lines(grid_str)
+    points1 = enhance_n(points, algo, 1)
+    assert len(points1) == 9
+    points2 = enhance_n(points, algo, 2)
+    assert len(points2) == 25
 
 
 def get_solutions():
