@@ -4,6 +4,7 @@ import itertools
 import functools
 import operator
 
+# Parse input
 actions = {
     "on": True,
     "off": False,
@@ -19,7 +20,7 @@ def get_range(s):
 def get_instruction_from_string(s):
     action, middle, ranges = s.partition(" ")
     assert middle == " "
-    return actions[action], [get_range(v) for v in ranges.split(",")]
+    return actions[action], tuple(get_range(v) for v in ranges.split(","))
 
 
 def get_instructions_from_strings(lines):
@@ -31,11 +32,17 @@ def get_instructions_from_file(file_path="day22_input.txt"):
         return get_instructions_from_strings(f)
 
 
+# Range operations
+def range_check(interval):
+    begin, end = interval
+    assert begin <= end
+
+
 def range_intersection(interval1, interval2):
+    range_check(interval1)
+    range_check(interval2)
     beg1, end1 = interval1
     beg2, end2 = interval2
-    assert beg1 <= end1
-    assert beg2 <= end2
     beg3 = max(beg1, beg2)
     end3 = min(end1, end2)
     if beg3 <= end3:
@@ -43,6 +50,90 @@ def range_intersection(interval1, interval2):
     return []
 
 
+def range_length(interval):
+    range_check(interval)
+    begin, end = interval
+    return 1 + end - begin
+
+
+def ranges_are_disjoint(interval1, interval2):
+    range_check(interval1)
+    range_check(interval2)
+    beg1, end1 = interval1
+    beg2, end2 = interval2
+    return beg2 > end1 or beg1 > end2
+
+
+def range_contains(interval, value):
+    range_check(interval)
+    begin, end = interval
+    return begin <= value <= end
+
+
+def range_split(interval1, interval2):
+    range_check(interval1)
+    range_check(interval2)
+    beg1, end1 = interval1
+    beg2, end2 = interval2
+    # This should be easy, there are only 3 cases:
+    # Case 1:
+    #      +------+
+    #               +------+
+    #     gives:
+    #      +------+
+    #               +------+
+    # Case 2:
+    #      +------+
+    #          +------+
+    #     gives:
+    #      +--++--+
+    #          +--++--+
+    # Case 3:
+    #      +-------------+
+    #          +------+
+    #     gives:
+    #      +--++------++-+
+    #          +------+
+    # But for the edge cases make things slightly trickier:
+    #      +------+
+    #             +------+
+    #     gives:
+    #      +-----+x
+    #             x+-----+
+    # Or
+    #      +--------------+
+    #             +
+    #     gives:
+    #      +-----+x+------+
+    #             x
+    ret1, ret2 = [], []
+    midpoints = set()
+    for p in [beg1, beg2, end1, end2]:
+        for p2 in [p - 1, p, p + 1]:
+            midpoints.add(p2)
+    prevIn1, prevIn2 = False, False
+    beg, end = None, None
+    for p in sorted(midpoints):
+        in1, in2 = (range_contains(interval1, p), range_contains(interval2, p))
+        if beg is None:
+            beg, end = p, p
+        elif (prevIn1, prevIn2) == (in1, in2):
+            end = p
+        else:
+            if prevIn1:
+                ret1.append((beg, end))
+            if prevIn2:
+                ret2.append((beg, end))
+            beg, end = p, p
+        prevIn1, prevIn2 = in1, in2
+    if prevIn1:
+        ret1.append((beg, end))
+    if prevIn2:
+        ret2.append((beg, end))
+    return ret1, ret2
+
+
+# Instructions for part 1
 def follow_instruction(instruction, points, interval):
     action, ranges = instruction
     ranges = [range_intersection(interval, r) for r in ranges]
@@ -57,7 +148,13 @@ def follow_instructions(instructions, interval):
     points = set()
     for instruction in instructions:
         points = follow_instruction(instruction, points, interval)
-    return points
+    return len(points)
+
+
+# Cube operations
+def cube_check(cube):
+    for side in cube:
+        range_check(side)
 
 
 def mult(iterable, start=1):
@@ -65,9 +162,9 @@ def mult(iterable, start=1):
     return functools.reduce(operator.mul, iterable, start)
 
 
-def volume(cube):
-    print(cube)
-    return mult((1 + end - 1) for beg, end in cube)
+def cube_volume(cube):
+    cube_check(cube)
+    return mult(range_length(side_range) for side_range in cube)
 
 
 # With two cuboids A & B, we can have:
@@ -81,22 +178,45 @@ def volume(cube):
 #     * a bit tedious
 
 
-def add_cube(cube, cubes):
-    # TODO
-    return cubes + [cube]
+def cubes_are_disjoint(cube1, cube2):
+    return any(ranges_are_disjoint(r1, r2) for r1, r2 in zip(cube1, cube2))
 
 
-def remove_cube(cube, cubes):
-    # TODO
-    return cubes
+def cube_split(cube1, cube2):
+    # Split the cubes by splitting the sides as much as possible
+    # and then, recombine them all to form small cubes
+    # TODO: This is splitting more than necessary - see comment in cube_split_tests below
+    cube_check(cube1)
+    cube_check(cube2)
+    ret1, ret2 = [], []
+    for r1, r2 in zip(cube1, cube2):
+        s1, s2 = range_split(r1, r2)
+        ret1.append(s1)
+        ret2.append(s2)
+    return list(itertools.product(*ret1)), list(itertools.product(*ret2))
 
 
+# Instructions for part 2
 def follow_instruction2(instruction, cubes):
-    action, ranges = instruction
+    action, new_cube = instruction
+    # Split existing cubes
+    existing_cubes = []
+    for c in cubes:
+        existing_cubes.extend(cube_split(c, new_cube)[0])
+    existing_cubes = set(existing_cubes)
+    # Split new cube
+    new_cubes = [new_cube]
+    for c in existing_cubes:
+        new_cubes2 = []
+        for c2 in new_cubes:
+            new_cubes2.extend(cube_split(c2, c)[0])
+        new_cubes = new_cubes2
+    new_cubes = set(new_cubes)
+    # New elements are expected to be disjoints (or identical)
     if action:
-        return add_cube(ranges, cubes)
+        return existing_cubes | new_cubes
     else:
-        return remove_cube(ranges, cubes)
+        return existing_cubes - new_cubes
 
 
 def follow_instructions2(instructions):
@@ -104,15 +224,16 @@ def follow_instructions2(instructions):
     # We can try to handle disjoint cuboids containing only cubes on, the final
     # number of points is the sum of the volume of the cubes
     cubes = []
-    for instruction in instructions:
+    for i, instruction in enumerate(instructions):
+        # print(i + 1, len(instructions))
         cubes = follow_instruction2(instruction, cubes)
-    return sum(volume(c) for c in cubes)
+    return sum(cube_volume(c) for c in cubes)
 
 
 def part1_tests():
     interval = (-50, 50)
     instructions = [get_instruction_from_string("on x=10..12,y=10..12,z=10..12")]
-    assert len(follow_instructions(instructions, interval)) == 27
+    assert follow_instructions(instructions, interval) == 27
 
     instructions = [
         "on x=10..12,y=10..12,z=10..12",
@@ -121,7 +242,7 @@ def part1_tests():
         "on x=10..10,y=10..10,z=10..10",
     ]
     instructions = get_instructions_from_strings(instructions)
-    assert len(follow_instructions(instructions, interval)) == 39
+    assert follow_instructions(instructions, interval) == 39
 
     instructions = [
         "on x=-20..26,y=-36..17,z=-47..7",
@@ -148,7 +269,7 @@ def part1_tests():
         "on x=967..23432,y=45373..81175,z=27513..53682",
     ]
     instructions = get_instructions_from_strings(instructions)
-    assert len(follow_instructions(instructions, interval)) == 590784
+    assert follow_instructions(instructions, interval) == 590784
 
 
 def part2_tests():
@@ -215,10 +336,154 @@ def part2_tests():
         "off x=-93533..-4276,y=-16170..68771,z=-104985..-24507",
     ]
     instructions = get_instructions_from_strings(instructions)
-    print(follow_instructions2(instructions))
+    # Check for the first steps if we get the same result for
+    # original ("naive") implementation and new ("optimised")
+    # implentation
+    interval = (-200, 200)
+    for i in range(8):
+        restricted_instructions = instructions[:i]
+        res1 = follow_instructions(restricted_instructions, interval)
+        res2 = follow_instructions2(restricted_instructions)
+        if res1 != res2:
+            print(i, restricted_instructions)
+            print(res1, res2)
+            break
+    # print(follow_instructions2(instructions))
+
+
+def range_split_tests(range1, range2, expected_results=None):
+    ret1, ret2 = range_split(range1, range2)
+    # Elements returned are valid
+    for i in ret1:
+        range_check(i)
+    for i in ret2:
+        range_check(i)
+    if ranges_are_disjoint(range1, range2):
+        # Disjoint ranges are not affected
+        assert ret1 == [range1]
+        assert ret2 == [range2]
+    elif range1 == range2:
+        # Identical ranges are not affected
+        assert ret1 == [range1]
+        assert ret2 == [range2]
+    else:
+        # Overlapping different ranges are somehow affected
+        len1, len2 = len(ret1), len(ret2)
+        assert 1 <= len1 <= 3
+        assert 1 <= len2 <= 3
+        assert 3 <= len1 + len2 <= 4
+        assert 2 <= len(set(ret1 + ret2)) <= 3
+    # Overall length is kept
+    assert sum(range_length(i) for i in ret1) == range_length(range1)
+    assert sum(range_length(i) for i in ret2) == range_length(range2)
+    # Individual pieces are disjoint
+    for r1, r2 in itertools.permutations(ret1, 2):
+        assert ranges_are_disjoint(r1, r2)
+    for r1, r2 in itertools.permutations(ret2, 2):
+        assert ranges_are_disjoint(r1, r2)
+    # Pieces from input ranges are either identical or disjoint
+    for r1, r2 in itertools.product(ret1, ret2):
+        assert (r1 == r2) or ranges_are_disjoint(r1, r2)
+    if expected_results is not None:
+        assert (ret1, ret2) == expected_results
+    elif 0:
+        print(range1, range2, ret1, ret2)
+
+
+def range_operation_tests():
+    range0 = (10, 10)
+    range1 = (0, 10)
+    range2 = (10, 20)
+    range3 = (20, 30)
+    range4 = (5, 15)
+    assert range_length(range0) == 1
+    assert range_length(range1) == 11
+    assert ranges_are_disjoint(range1, range3)
+    assert ranges_are_disjoint(range3, range1)
+    assert not ranges_are_disjoint(range1, range2)
+    assert not ranges_are_disjoint(range2, range1)
+    assert ranges_are_disjoint(range0, range3)
+    assert ranges_are_disjoint(range3, range0)
+    assert not ranges_are_disjoint(range0, range2)
+    assert not ranges_are_disjoint(range2, range0)
+    range_split_tests((5, 15), (0, 10), ([(5, 10), (11, 15)], [(0, 4), (5, 10)]))
+    ranges = [range0, range1, range2, range3, range4]
+    for r1, r2 in itertools.product(ranges, repeat=2):
+        range_split_tests(r1, r2)
+
+
+def cube_split_tests(cube1, cube2, expected_results=None):
+    ret1, ret2 = cube_split(cube1, cube2)
+    # Elements returned are valid
+    for i in ret1:
+        cube_check(i)
+    for i in ret2:
+        cube_check(i)
+    if cubes_are_disjoint(cube1, cube2):
+        # TODO: Disjoint cubes should not be affected
+        # There may be some optimisation to be performed because we are
+        # splitting more than necessary
+        if 0:
+            assert ret1 == [cube1]
+            assert ret2 == [cube2]
+    elif cube1 == cube2:
+        # Identical cubes are not affected
+        assert ret1 == [cube1]
+        assert ret2 == [cube2]
+    else:
+        # Overlapping different cubes are somehow affected
+        len1, len2 = len(ret1), len(ret2)
+        assert 1 <= len1 <= 3 ** 3
+        assert 1 <= len2 <= 3 ** 3
+        assert 3 <= len1 + len2 <= 3 ** 3 + 1
+        assert 2 <= len(set(ret1 + ret2)) <= 3 ** 3
+    # Overall length is kept
+    assert sum(cube_volume(i) for i in ret1) == cube_volume(cube1)
+    assert sum(cube_volume(i) for i in ret2) == cube_volume(cube2)
+    # Individual pieces are disjoint
+    for c1, c2 in itertools.permutations(ret1, 2):
+        assert cubes_are_disjoint(c1, c2)
+    for c1, c2 in itertools.permutations(ret2, 2):
+        assert cubes_are_disjoint(c1, c2)
+    # Pieces from input cubes are either identical or disjoint
+    for c1, c2 in itertools.product(ret1, ret2):
+        assert (c1 == c2) or cubes_are_disjoint(c1, c2)
+    if expected_results is not None:
+        assert (ret1, ret2) == expected_results
+    elif 0:
+        print(cube1, cube2, ret1, ret2)
+
+
+def cube_operation_tests():
+    cube0 = ((0, 0), (0, 0), (0, 0))
+    cube1 = ((0, 4), (0, 4), (0, 4))
+    cube2 = ((0, 4), (0, 4), (0, 5))
+    cube3 = ((5, 9), (5, 9), (5, 9))
+    cube4 = ((5, 9), (0, 4), (0, 4))
+    assert cube_volume(cube0) == 1
+    assert cube_volume(cube1) == 5 * 5 * 5
+    cubes = [
+        cube0,
+        cube1,
+        cube2,
+        cube3,
+        cube4,
+        ((1, 3), (1, 3), (1, 3)),
+        ((1, 3), (0, 4), (0, 4)),
+        ((1, 3), (0, 5), (0, 4)),
+        ((1, 5), (1, 5), (1, 5)),
+    ]
+    cube_split_tests(cube0, cube1)
+    cube_split_tests(cube1, cube3, ([cube1], [cube3]))
+    cube_split_tests(cube0, cube4)
+    for cube1, cube2 in itertools.product(cubes, repeat=2):
+        assert cubes_are_disjoint(cube1, cube2) == cubes_are_disjoint(cube2, cube1)
+        cube_split_tests(cube1, cube2)
 
 
 def run_tests():
+    range_operation_tests()
+    cube_operation_tests()
     part1_tests()
     part2_tests()
 
@@ -226,7 +491,7 @@ def run_tests():
 def get_solutions():
     interval = (-50, 50)
     instructions = get_instructions_from_file()
-    print(len(follow_instructions(instructions, interval)))
+    print(follow_instructions(instructions, interval))
 
 
 if __name__ == "__main__":
