@@ -166,7 +166,7 @@ def organise(points, moving_parts):
     solution = None
     while queue:
         nb_moves, cost, setup = queue.pop(0)
-        setup_hashable = tuple(setup)
+        setup_hashable = tuple(sorted(setup.items()))
         if setup_hashable in seen and cost >= seen[setup_hashable]:
             continue
         seen[setup_hashable] = cost
