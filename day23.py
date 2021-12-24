@@ -89,11 +89,14 @@ def destination_rooms(val):
     return [(3, y), (2, y)]  # Order matters
 
 
-def is_organised(moving_parts):
-    for pos, val in moving_parts.items():
-        if pos not in destination_rooms(val):
-            return False
-    return True
+def count_right_position(moving_parts):
+    c = 0
+    for val in y_vals:
+        for pos in destination_rooms(val):
+            if not moving_parts.get(pos, None) == val:
+                break
+            c += 1
+    return c
 
 
 def get_moves(points, moving_parts):
@@ -160,27 +163,34 @@ def get_moves(points, moving_parts):
                     yield cost, moving_parts2
 
 
+def hash_mp(moving_parts):
+    return tuple(sorted(moving_parts.items()))
+
+
 def organise(points, moving_parts):
-    queue = [(0, 0, moving_parts)]
+    # (nb_right_pos, nb_moves, cost, moving_parts)
+    heap = [(0, 0, 0, hash_mp(moving_parts))]
     seen = dict()
     solution = None
-    while queue:
-        nb_moves, cost, setup = queue.pop(0)
-        setup_hashable = tuple(sorted(setup.items()))
-        if setup_hashable in seen and cost >= seen[setup_hashable]:
+    while heap:
+        nb_right, nb_moves, cost, setup = heapq.heappop(heap)
+        if setup in seen and cost >= seen[setup]:
             continue
-        seen[setup_hashable] = cost
+        seen[setup] = cost
         if solution is not None and cost >= solution:
             continue
-        if is_organised(setup):
+        setup_dict = dict(setup)
+        if nb_right == -8:
             solution = cost
-            print(solution)
+            print(solution, "elements in queue:", len(heap))
             continue
-        moves = list(get_moves(points, setup))
+        moves = list(get_moves(points, setup_dict))
         for cost_add, setup2 in moves:
             nb_moves2 = nb_moves + 1
             cost2 = cost + cost_add
-            queue.append((nb_moves2, cost2, setup2))
+            heapq.heappush(
+                heap, (-count_right_position(setup2), nb_moves2, cost2, hash_mp(setup2))
+            )
     return solution
 
 
@@ -249,7 +259,7 @@ def run_tests():
     ]
     for points, energy in tests:
         points, moving_parts = get_points_from_lines(points)
-        print(organise(points, moving_parts), energy)
+        assert organise(points, moving_parts) == energy
 
 
 def get_solutions():
