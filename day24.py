@@ -1,16 +1,19 @@
 # vi: set shiftwidth=4 tabstop=4 expandtab:
 import datetime
-import math 
+import math
 import itertools
+
 
 def get_program_from_file(file_path="day24_input.txt"):
     with open(file_path) as f:
         return [l.strip() for l in f]
 
+
 def get_val(alu, var_or_number):
     if var_or_number in alu:
         return alu[var_or_number]
     return int(var_or_number)
+
 
 def run_program(program, input_val):
     alu = {var: 0 for var in "wxyz"}
@@ -37,6 +40,7 @@ def run_program(program, input_val):
         else:
             assert False
     return alu
+
 
 def run_tests():
     program = [
@@ -66,24 +70,30 @@ def run_tests():
     for i in range(16):
         res = run_program(program, iter([i]))
         i, rem = divmod(i, 2)
-        assert res["z"] == rem 
+        assert res["z"] == rem
         i, rem = divmod(i, 2)
-        assert res["y"] == rem 
+        assert res["y"] == rem
         i, rem = divmod(i, 2)
-        assert res["x"] == rem 
+        assert res["x"] == rem
         i, rem = divmod(i, 2)
-        assert res["w"] == rem 
- 
+        assert res["w"] == rem
 
-def get_solutions():
-    program = get_program_from_file()
-    maxi = int("9"*14)
+
+def monad_bruteforce(program):
+    # This will never work - a better solution is to be found
+    maxi = int("9" * 14)
     for i in itertools.count(maxi, -1):
         i_lst = [int(d) for d in str(i)]
         if 0 not in i_lst:
             res = run_program(program, iter(i_lst))
             if res["z"] == 0:
-                print(i)
+                return i
+    assert False
+
+
+def get_solutions():
+    program = get_program_from_file()
+    return monad_bruteforce(program)
 
 
 if __name__ == "__main__":
