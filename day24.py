@@ -42,6 +42,10 @@ def run_program(program, input_val):
             alu[dest] = int(alu[dest] == get_val(alu, line[2]))
         else:
             assert False
+        if 0:
+            print(line)
+            print(alu)
+            input("Enter to continue")
     return alu
 
 
@@ -100,14 +104,36 @@ def monad_bruteforce(program):
     assert False
 
 
+def monad_analysis(program):
+    input_positions = [i for i, l in enumerate(program) if l.startswith("inp ")]
+    for nb_dig in (1, 2, 3, 4):
+        prog = program[: input_positions[nb_dig]]
+        for inp in itertools.product(range(1, 10), repeat=nb_dig):
+            res = run_program(prog, iter(inp))
+            if nb_dig == 1:
+                assert res["w"] == inp[-1]
+                assert res["x"] == 1
+                assert res["y"] == res["z"] == inp[0] + 8
+            elif nb_dig == 2:
+                assert res["w"] == inp[-1]
+                assert res["x"] == 1
+                assert res["y"] == inp[1] + 13
+                assert res["z"] == inp[1] + 13 + 26 * (inp[0] + 8)
+                assert res["z"] == 221 + inp[1] + 26 * inp[0]
+            elif nb_dig == 3:
+                assert res["w"] == inp[-1]
+                assert res["x"] == 1
+                assert res["y"] == inp[2] + 8
+
+
 def get_solutions():
     program = get_program_from_file()
-    return monad_bruteforce(program)
+    return monad_analysis(program)
 
 
 if __name__ == "__main__":
     begin = datetime.datetime.now()
-    run_tests()
+    #     run_tests()
     get_solutions()
     end = datetime.datetime.now()
     print(end - begin)
