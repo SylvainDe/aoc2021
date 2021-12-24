@@ -15,6 +15,11 @@ def get_val(alu, var_or_number):
     return int(var_or_number)
 
 
+def truncate_div(a, b):
+    q = a / b
+    return math.floor(q) if q >= 0 else math.ceil(q)
+
+
 def run_program(program, input_val):
     alu = {var: 0 for var in "wxyz"}
     for line in program:
@@ -30,9 +35,7 @@ def run_program(program, input_val):
         elif instruction == "mul":
             alu[dest] *= get_val(alu, line[2])
         elif instruction == "div":
-            a, b = alu[dest], get_val(alu, line[2])
-            q = a / b
-            alu[dest] = math.floor(q) if q >= 0 else math.ceil(q)
+            alu[dest] = truncate_div(alu[dest], get_val(alu, line[2]))
         elif instruction == "mod":
             alu[dest] %= get_val(alu, line[2])
         elif instruction == "eql":
@@ -43,6 +46,12 @@ def run_program(program, input_val):
 
 
 def run_tests():
+    assert truncate_div(0, 2) == 0
+    assert truncate_div(4, 2) == 2
+    assert truncate_div(5, 2) == 2
+    assert truncate_div(-4, 2) == -2
+    assert truncate_div(-5, 2) == -2
+
     program = [
         "inp z",
         "inp x",
