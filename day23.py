@@ -89,14 +89,14 @@ def destination_rooms(val):
     return [(3, y), (2, y)]  # Order matters
 
 
-def count_right_position(moving_parts):
+def count_wrong_position(moving_parts):
     c = 0
     for val in y_vals:
         for pos in destination_rooms(val):
             if not moving_parts.get(pos, None) == val:
                 break
             c += 1
-    return c
+    return len(moving_parts) - c
 
 
 def get_moves(points, moving_parts):
@@ -107,37 +107,40 @@ def get_moves(points, moving_parts):
     for pos, val in moving_parts.items():
         destinations = set()
         room_dests = destination_rooms(val)
+        assert all(dest in rooms for dest in room_dests)
+
+        # Get final position for element (None if it is busy or if there is no point in going there)
+        final_destination = None
+        for dest in room_dests:
+            if dest == pos:
+                # Current position is final position
+                final_destination = dest
+                break
+            val2 = moving_parts.get(dest, None)
+            if val2 is None:
+                # Free
+                final_destination = dest
+                break
+            elif val2 == val:
+                # Busy with correct value - look at next spot
+                continue
+            else:
+                # Busy with incorrect value - stop
+                break
+
         if pos in hallway:
             # Once an amphipod stops moving in the hallway, it will stay in that spot until it can move into a room
             # Amphipods will never move from the hallway into a room unless that room is their destination room...
             assert pos not in room_dests
-            assert all(dest in rooms for dest in room_dests)
-            for dest in room_dests:
-                val2 = moving_parts.get(dest, None)
-                if val2 == val:
-                    # Destination is busy with the correct value - let's have a look at the next spot
-                    pass
-                else:
-                    if val2 is None:
-                        # Destination is free - let's go there (no point to continue)
-                        destinations.add(dest)
-                    # else destination is busy with the incorrect value - no point to continue
-                    break
+            destinations = set([] if final_destination is None else [final_destination])
             assert all(dest in rooms for dest in destinations)
         else:
             # We can try to go almost anywhere
-            destinations = set(room_dests) | hallway
-            # But we can be smarter...
-            if pos == room_dests[0]:
-                # In the right place: don't move!
+            # But we can be smarter... if it's in the right place: don't move!
+            if pos == final_destination:
                 destinations = set()
-            elif (
-                pos == room_dests[1]
-                and room_dests[0] in moving_parts
-                and moving_parts[room_dests[0]] == val
-            ):
-                # In the right place: don't move!
-                destinations = set()
+            else:
+                destinations = set(room_dests) | hallway
 
         # Remove origin
         destinations -= set([pos])
@@ -153,8 +156,6 @@ def get_moves(points, moving_parts):
                     assert dist > 0
                     # Generate move - copy info and update it
                     cost = dist * energy
-                    # moving_parts2 = {k:v for k, v in moving_parts.items()}
-                    # moving_parts2 = dict(moving_parts)
                     moving_parts2 = moving_parts.copy()
                     moving_parts2.pop(pos)
                     assert dest not in moving_parts2
@@ -168,28 +169,28 @@ def hash_mp(moving_parts):
 
 
 def organise(points, moving_parts):
-    # (nb_right_pos, nb_moves, cost, moving_parts)
-    heap = [(0, 0, 0, hash_mp(moving_parts))]
+    # (nb_wrong_pos, nb_moves, cost, moving_parts)
+    heap = [(count_wrong_position(moving_parts), 0, 0, hash_mp(moving_parts))]
     seen = dict()
     solution = None
     while heap:
-        nb_right, nb_moves, cost, setup = heapq.heappop(heap)
+        nb_wrong_pos, nb_moves, cost, setup = heapq.heappop(heap)
         if setup in seen and cost >= seen[setup]:
             continue
         seen[setup] = cost
         if solution is not None and cost >= solution:
             continue
         setup_dict = dict(setup)
-        if nb_right == -8:
+        if nb_wrong_pos == 0:
             solution = cost
-            print(solution, "elements in queue:", len(heap))
+            # print(solution, "elements in queue:", len(heap))
             continue
         moves = list(get_moves(points, setup_dict))
         for cost_add, setup2 in moves:
             nb_moves2 = nb_moves + 1
             cost2 = cost + cost_add
             heapq.heappush(
-                heap, (-count_right_position(setup2), nb_moves2, cost2, hash_mp(setup2))
+                heap, (count_wrong_position(setup2), nb_moves2, cost2, hash_mp(setup2))
             )
     return solution
 
